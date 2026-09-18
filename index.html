@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tiệm Trà Mèo Xám - Đặt Món & Vòng Quay VIP</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+  :root {
+    --ink: #0f0f0f; --paper: #f6f2e9; --card: #ffffff; --line: #0f0f0f;
+    --muted: #6b675e; --good: #1e7d3c; --warn: #a06b00; --bad: #b3261e;
+    --soft: #efe9d8; --accent: #e67e22; --purple: #8e44ad;
+  }
+  body.vip-mode {
+    --paper: #080808; --card: #141414; --ink: #fcfcfc; --line: #f1c40f;
+    --muted: #b0aba0; --soft: #1f1f1f; --accent: #f1c40f;
+    --good: #2ecc71; --warn: #f39c12; --bad: #e74c3c;
+    background-color: #080808;
+    background-image: radial-gradient(circle at 1px 1px, rgba(241,196,15,0.12) 1px, transparent 0);
+  }
+  body.vip-mode .container { background: #080808; box-shadow: 0 0 35px rgba(241,196,15,0.25); border-left: 2.5px solid #f1c40f; border-right: 2.5px solid #f1c40f; }
+  body.vip-mode .header, body.vip-mode .menu-item, body.vip-mode .modal-card, body.vip-mode .cart-item-surface, body.vip-mode .pay-box, body.vip-mode .history-card, body.vip-mode .floating-tag, body.vip-mode .chat-window { background: #141414; border-color: #f1c40f; color: #fcfcfc; }
+  body.vip-mode .input-group input, body.vip-mode .input-group textarea, body.vip-mode .input-group select, body.vip-mode .chat-footer input { background: #1c1c1c; color: #fcfcfc; border-color: #d4ac0d; }
+  body.vip-mode h1, body.vip-mode h2, body.vip-mode h3 { color: #f1c40f; text-shadow: 0 0 12px rgba(241,196,15,0.35); }
+  body.vip-mode .btn { background: #f1c40f; color: #080808; border-color: #f1c40f; font-weight: 900; }
+  body.vip-mode .btn.outline { background: #141414; color: #f1c40f; border-color: #f1c40f; }
+  body.vip-mode .size-btn.active { background: #f1c40f; color: #080808; }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; padding: 0; background: var(--paper); background-image: radial-gradient(circle at 1px 1px, rgba(15,15,15,0.06) 1px, transparent 0); background-size: 18px 18px; color: var(--ink); padding-bottom: 90px; overflow-x: hidden; }
+  .container { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--paper); position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); overflow-x: hidden; }
+  .header { background: var(--card); border-bottom: 2.5px solid var(--line); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .header-logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .header-logo svg { width: 42px; height: 42px; background: rgba(244,236,216,0.3); border-radius: 14px; border: 1.5px solid var(--line); padding: 5px; }
+  .header h1 { font-weight: 900; font-size: 17px; margin: 0; letter-spacing: 0.5px; text-transform: uppercase; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .btn-header-icon { background: var(--soft); border: 1.5px solid var(--line); border-radius: 50%; width: 38px; height: 38px; display: none; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: 0.2s; }
+  .btn-header-icon:active { transform: scale(0.9); }
+  .screen { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #cfc7b2; border-radius: 12px 12px 0 0; overflow: hidden; }
+  .auth-tab { flex: 1; text-align: center; padding: 12px; font-weight: 800; cursor: pointer; color: var(--muted); transition: 0.2s; }
+  .auth-tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
+  h2 { font-weight: 900; font-size: 22px; margin-top: 0; margin-bottom: 10px; text-align: center; }
+  h3 { font-weight: 900; font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 2px solid var(--line); padding-bottom: 6px; }
+  p.subtitle { text-align: center; font-size: 13px; color: var(--muted); margin-top: -6px; margin-bottom: 20px; }
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px; color: var(--muted); }
+  .input-group input, .input-group textarea, .input-group select { width: 100%; font-size: 15px; border: 2px solid #cfc7b2; border-radius: 16px; padding: 12px 16px; background: #fffdf8; color: var(--ink); outline: none; transition: all 0.2s; font-family: inherit; }
+  .input-group input:focus, .input-group textarea:focus { border-color: var(--accent); background: #fff; }
+  .btn { width: 100%; display: block; font-family: inherit; font-weight: 800; font-size: 15px; border: 2px solid var(--line); background: var(--ink); color: var(--paper); border-radius: 16px; padding: 14px 16px; cursor: pointer; text-align: center; transition: transform 0.1s; }
+  .btn:active { transform: scale(0.98); }
+  .btn.outline { background: var(--card); color: var(--ink); }
+  .btn.danger { background: #fdf1f0; color: var(--bad); border-color: #d9534f; }
+  .btn.success { background: var(--good); border-color: var(--good); color: #fff; }
+  .btn.small { padding: 8px 12px; font-size: 13px; border-radius: 12px; }
+  .lucky-banner { background: linear-gradient(135deg, #ff9966, #ff5e62, #8e44ad); border: 2.5px solid var(--line); border-radius: 24px; padding: 16px; color: #fff; margin-bottom: 16px; text-align: center; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 4px 18px rgba(142,68,173,0.3); animation: pulseGlow 2s infinite; }
+  @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(230,126,34,0.4); } 70% { box-shadow: 0 0 0 14px rgba(230,126,34,0); } 100% { box-shadow: 0 0 0 0 rgba(230,126,34,0); } }
+  .lucky-banner h3 { margin: 0 0 4px 0; font-size: 18px; color: #fff; border: none; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+  .lucky-banner p { margin: 0 0 8px 0; font-size: 13px; font-weight: 700; opacity: 0.95; }
+  .ticket-badge-wrapper { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
+  .ticket-badge { background: #fff; color: var(--bad); padding: 5px 14px; border-radius: 20px; font-weight: 900; font-size: 12px; border: 1.5px solid var(--line); display: inline-block; }
+  .timer-badge { background: rgba(0,0,0,0.3); color: #fff; padding: 5px 14px; border-radius: 20px; font-weight: 800; font-size: 11.5px; border: 1.5px solid rgba(255,255,255,0.4); display: inline-block; }
+  .wheel-container { position: relative; width: 280px; height: 280px; margin: 0 auto 16px auto; }
+  .wheel-pin { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 26px solid var(--bad); z-index: 25; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+  .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--line); position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+  .wheel-sector { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-start; padding-top: 25px; font-size: 10px; font-weight: 900; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.9); pointer-events: none; }
+  .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; background: var(--card); border: 3px solid var(--line); border-radius: 50%; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
+  .category-scroll::-webkit-scrollbar { display: none; }
+  .cat-chip { flex: 0 0 auto; border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 8px 20px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .cat-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .menu-item { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; transition: transform 0.2s; cursor: pointer; }
+  .menu-item:active { background: var(--soft); transform: scale(0.98); }
+  .item-img-placeholder { width: 100%; height: 120px; background: #fdfbf7; border-radius: 14px; border: 1.5px solid #cfc7b2; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 10px; overflow: hidden; font-weight: 900; color: #dcd5c2; }
+  .item-img-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+  .item-name { font-weight: 800; font-size: 14px; line-height: 1.3; margin-bottom: 4px; }
+  .item-price { font-weight: 700; font-size: 13px; color: var(--good); }
+  .add-btn { position: absolute; bottom: 12px; right: 12px; width: 34px; height: 34px; background: var(--accent); color: #fff; border: 2px solid var(--line); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; }
+  .bottom-cart-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-top: 2.5px solid var(--line); padding: 14px 20px; display: none; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.06); }
+  .bottom-cart-bar.visible { display: flex; }
+  .cart-info { font-weight: 800; font-size: 15px; }
+  .cart-info span { font-size: 12px; color: var(--muted); font-weight: 600; display: block; }
+  .btn-view-cart { background: var(--accent); color: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 10px 22px; font-weight: 800; font-size: 14px; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,15,15,0.65); backdrop-filter: blur(4px); z-index: 999; display: none; align-items: flex-end; justify-content: center; }
+  .modal-card { background: var(--card); width: 100%; max-width: 480px; border-top: 3px solid var(--line); border-radius: 28px 28px 0 0; padding: 26px 22px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .size-selector { display: flex; gap: 10px; margin-bottom: 16px; }
+  .size-btn { flex: 1; border: 2px solid var(--line); background: var(--card); border-radius: 14px; padding: 10px; text-align: center; font-weight: 800; font-size: 14px; cursor: pointer; }
+  .size-btn.active { background: var(--ink); color: #fff; }
+  .topping-list { margin-bottom: 16px; border: 2px solid #e4ded0; border-radius: 14px; overflow: hidden; }
+  .topping-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e4ded0; font-size: 14px; font-weight: 600; background: #fffdf8; }
+  .topping-item:last-child { border-bottom: none; }
+  .topping-item input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .cart-list { margin-bottom: 20px; }
+  .cart-item-wrapper { position: relative; overflow: hidden; border-radius: 18px; margin-bottom: 14px; border: 2px solid var(--line); background: #d9534f; }
+  .cart-item-bg-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 85px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; }
+  .cart-item-surface { position: relative; z-index: 2; background: var(--card); padding: 16px; transition: transform 0.3s ease; border-radius: 16px; width: 100%; }
+  .cart-item-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+  .cart-item-sub { font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+  .qty-controls { display: flex; align-items: center; gap: 12px; }
+  .qty-btn { width: 30px; height: 30px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--soft); font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .pay-box { border: 2px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 12px; background: #fffdf8; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .pay-box.active { background: #eaf4ed; border-color: var(--good); border-width: 3px; transform: scale(1.02); }
+  .pay-box-title { font-size: 16px; font-weight: 900; margin-bottom: 4px; }
+  .qr-container { display: none; text-align: center; margin-top: 16px; animation: fadeIn 0.3s ease; }
+  .qr-container img { max-width: 100%; border-radius: 18px; border: 3px solid var(--line); width: 280px; }
+  .floating-tag { position: fixed; bottom: 90px; right: 20px; background: var(--card); border: 2.5px solid var(--accent); border-radius: 35px; padding: 8px 18px 8px 12px; display: flex; align-items: center; gap: 10px; z-index: 200; box-shadow: 0 4px 18px rgba(230,126,34,0.3); cursor: pointer; animation: slideInRight 0.4s ease; }
+  @keyframes slideInRight { from { transform: translateX(120%); } to { transform: translateX(0); } }
+  .pulse-dot { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(230,126,34,0.7); } 70% { box-shadow: 0 0 0 10px rgba(230,126,34,0); } 100% { box-shadow: 0 0 0 0 rgba(230,126,34,0); } }
+  .floating-tag span { font-weight: 800; font-size: 13px; color: var(--ink); }
+  .chat-window { position: fixed; bottom: 150px; right: 20px; width: 320px; height: 400px; background: var(--card); border: 2.5px solid var(--line); border-radius: 24px; display: none; flex-direction: column; z-index: 201; box-shadow: 0 8px 30px rgba(0,0,0,0.18); max-width: calc(100vw - 40px); overflow: hidden; }
+  .chat-header { background: var(--soft); padding: 12px 16px; border-bottom: 2px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 14px; }
+  .chat-body { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #fdfbf7; }
+  .chat-footer { padding: 10px; border-top: 2px solid var(--line); display: flex; gap: 8px; background: #fff; }
+  .chat-footer input { flex: 1; border: 1.5px solid #cfc7b2; border-radius: 14px; padding: 8px 14px; outline: none; font-size: 13px; }
+  .chat-footer button { background: var(--accent); color: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 16px; font-weight: 800; cursor: pointer; }
+  .msg-bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.4; position: relative; }
+  .msg-customer { background: var(--ink); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .msg-staff { background: var(--soft); color: var(--ink); align-self: flex-start; border: 1px solid #dcd5c2; border-bottom-left-radius: 4px; }
+  .history-card { background: #fffdf8; border: 2px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
+  .history-card.voucher-glow { border: 3px solid var(--purple); animation: purpleGlowBorder 1.5s infinite alternate; }
+  @keyframes purpleGlowBorder { 0% { box-shadow: 0 0 5px rgba(142,68,173,0.4); border-color: #8e44ad; } 100% { box-shadow: 0 0 15px rgba(142,68,173,0.9); border-color: #d2b4de; } }
+  .history-card-header { display: flex; justify-content: space-between; font-weight: 900; font-size: 14px; margin-bottom: 8px; border-bottom: 1px dashed #cfc7b2; padding-bottom: 8px; }
+  .history-item-line { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .history-item-sub { font-size: 11.5px; color: var(--muted); margin-left: 10px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-logo" onclick="goToMenuIfNeeded()">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 20 80 C 20 60, 30 40, 45 35" stroke="#6b675e" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 45 35 L 50 15 L 65 30 L 80 20 L 75 40" stroke="#6b675e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 75 40 C 90 55, 90 75, 75 90 C 60 105, 30 95, 30 75" stroke="#6b675e" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 55 45 L 75 55 M 55 50 L 78 50 M 55 55 L 75 45" stroke="#6b675e" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1 id="header-title-text">TIỆM TRÀ MÈO XÁM</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="btn-header-icon" id="btn-profile-icon" onclick="openProfileScreen()" title="Thông tin cá nhân">👤</div>
+      <div class="btn-header-icon" id="btn-wheel-icon" onclick="openWheelModal()" title="Vòng quay">🎡</div>
+      <div class="btn-header-icon" id="btn-history-icon" onclick="openHistoryScreen()" title="Lịch sử đơn hàng">📜</div>
+    </div>
+  </div>
+
+  <div class="screen active" id="step1-info">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-btn-login" onclick="switchAuthTab('login')">ĐĂNG NHẬP</div>
+      <div class="auth-tab" id="tab-btn-register" onclick="switchAuthTab('register')">ĐĂNG KÝ MỚI</div>
+    </div>
+    <div id="form-login">
+      <div class="input-group"><label>Số điện thoại (Tài khoản) *</label><input type="tel" id="login-phone" placeholder="VD: 0987654321" maxlength="10"></div>
+      <div class="input-group"><label>Mã PIN *</label><input type="password" id="login-pin" placeholder="Nhập mã PIN 4-6 số" maxlength="6"></div>
+      <button class="btn" style="margin-top:24px;" onclick="doLogin()">VÀO ĐẶT MÓN</button>
+    </div>
+    <div id="form-register" style="display:none;">
+      <div class="input-group"><label>Số điện thoại (10 số) *</label><input type="tel" id="reg-phone" placeholder="VD: 0987654321" maxlength="10"></div>
+      <div class="input-group"><label>Tên của bạn *</label><input type="text" id="reg-name" placeholder="VD: Ngọc Ánh"></div>
+      <div class="input-group"><label>Địa chỉ nhận hàng (Mặc định) *</label><textarea id="reg-address" rows="2" placeholder="Giao tận nơi hoặc Số bàn..."></textarea></div>
+      <div class="input-group"><label>Tạo mã PIN (4 đến 6 số) *</label><input type="password" id="reg-pin" placeholder="VD: 1234" maxlength="6"></div>
+      <div class="input-group"><label>Xác nhận mã PIN *</label><input type="password" id="reg-pin2" placeholder="Nhập lại mã PIN ở trên" maxlength="6"></div>
+      <button class="btn success" style="margin-top:16px;" onclick="doRegister()">ĐĂNG KÝ & VÀO APP</button>
+    </div>
+  </div>
+
+  <div class="screen" id="step2-menu">
+    <div class="lucky-banner" onclick="openWheelModal()">
+      <h3>🎡 VÒNG QUAY MAY MẮN 🎡</h3>
+      <p>Quay ngay để săn Voucher giảm giá & Phần quà hấp dẫn từ quán!</p>
+      <div class="ticket-badge-wrapper">
+        <div class="ticket-badge" id="banner-ticket-count">🎫 Vé: 0 Ticket</div>
+        <div class="timer-badge" id="banner-timer-text">⏳ Vé tiếp theo: --:--</div>
+      </div>
+    </div>
+    <div id="vip-status-banner" style="display:none; background:linear-gradient(135deg, #f1c40f, #d4ac0d); border:2.5px solid #fff; border-radius:18px; padding:12px 16px; margin-bottom:14px; text-align:center; font-size:14px; font-weight:900; color:#080808; box-shadow:0 4px 15px rgba(241,196,15,0.4);">👑 CHÀO MỪNG THÀNH VIÊN VIP BLACK & GOLD (Tổng chi tiêu > 3 Triệu)</div>
+    <div id="alert-merge-order" style="display:none; background:#eaf4ed; border:2px dashed var(--good); border-radius:14px; padding:10px; margin-bottom:14px; text-align:center; font-size:13px; font-weight:800; color:var(--good);">Đang trong chế độ: GỌI THÊM MÓN VÀO ĐƠN HIỆN TẠI ➕</div>
+    <div class="category-scroll" id="cat-tabs"><p style="font-size:13px; color:var(--muted); padding:10px;">Đang đồng bộ Menu...</p></div>
+    <div class="menu-grid" id="menu-grid"></div>
+  </div>
+
+  <div class="screen" id="step3-cart">
+    <h2>Giỏ hàng của bạn 🛒</h2>
+    <p class="subtitle">Vuốt món sang trái để xóa 👈</p>
+    <div class="cart-list" id="cart-list-ui"></div>
+    <div class="input-group" style="background:#fff9f0; border:2px dashed var(--accent); padding:12px; border-radius:16px; margin-bottom:16px;">
+      <label style="color:var(--accent); font-weight:900;">🎟️ CHỌN VOUCHER ÁP DỤNG:</label>
+      <select id="selected-voucher" onchange="onVoucherSelectChange()" style="margin-top:4px;"><option value="none">-- Không dùng voucher --</option></select>
+    </div>
+    <div style="background:var(--soft); border: 2px solid var(--line); border-radius:18px; padding:16px; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:6px;"><span>Tạm tính:</span><span id="cart-subtotal">0đ</span></div>
+      <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; color:var(--bad); margin-bottom:6px;"><span>Giảm giá:</span><span id="cart-discount-amt">-0đ</span></div>
+      <div style="display:flex; justify-content:space-between; font-weight:900; font-size:18px; border-top:1.5px dashed #cfc7b2; padding-top:8px;"><span>Tổng thanh toán (Đã làm tròn):</span><span id="cart-total-final" style="color:var(--good);">0đ</span></div>
+    </div>
+    <div style="display:flex; gap:12px; margin-bottom: 16px;">
+      <button class="btn outline" onclick="showScreen('step2-menu')">Chọn thêm</button>
+      <button class="btn success" style="flex:2;" id="btn-goto-payment" onclick="goToPayment()">XÁC NHẬN ĐÚNG</button>
+    </div>
+    <button class="btn danger outline" onclick="clearCart()">🗑️ Xóa toàn bộ</button>
+  </div>
+
+  <div class="screen" id="step4-payment">
+    <h2>Thanh toán 💳</h2>
+    <p class="subtitle" id="payment-subtitle">Chọn hình thức thanh toán cho đơn hàng</p>
+    <div id="payment-options-container">
+      <div class="pay-box active" id="pay-cash" onclick="selectPayment('Tiền mặt')"><div class="pay-box-title">💵 Tiền mặt</div><div style="font-size:13px; color:var(--muted);">Thanh toán bằng tiền mặt khi nhận hàng</div></div>
+      <div class="pay-box" id="pay-bank" onclick="selectPayment('Chuyển khoản')"><div class="pay-box-title">📱 Chuyển khoản QR</div><div style="font-size:13px; color:var(--muted);">Quét mã QR (Cần gửi ảnh bill cho nhân viên)</div></div>
+    </div>
+    <div class="qr-container" id="qr-section"><p style="font-weight:800; font-size:14px; margin-bottom:10px;">Quét mã bên dưới để thanh toán:</p><img src="1.jpg" alt="Mã QR Thanh Toán"></div>
+    <button class="btn" style="margin-top:24px; font-size:16px; padding:16px;" onclick="submitOrder()">HOÀN TẤT GỬI ĐƠN</button>
+    <button class="btn outline" style="margin-top:12px;" onclick="showScreen('step3-cart')">Quay lại</button>
+  </div>
+
+  <div class="screen" id="step5-success">
+    <div style="text-align:center; margin-top:40px;">
+      <div style="font-size:70px; margin-bottom:20px;">😽</div>
+      <h2 style="color:var(--good);" id="success-title">ĐẶT HÀNG THÀNH CÔNG!</h2>
+      <p style="font-size:15px; font-weight:600; line-height:1.5;">Cảm ơn Quý khách <b id="success-name"></b> đã chọn Tiệm Trà Mèo Xám.</p>
+      <p style="font-size:14px; color:var(--muted); margin-top:10px; background:#eaf4ed; padding:16px; border-radius:14px; border:2px dashed var(--good);">Tiệm Trà Mèo Xám cảm ơn vì luôn chọn tin tưởng quán, món nước của bạn sẽ được giao đến tay sớm nhất, xin trân trọng cảm ơn.</p>
+      <button class="btn outline" style="margin-top:20px;" onclick="openHistoryScreen()">Xem Lịch Sử Đơn</button>
+    </div>
+  </div>
+
+  <div class="screen" id="step6-history">
+    <h2>Lịch sử đơn hàng 📜</h2>
+    <div style="background:var(--card); border:2px solid var(--line); border-radius:18px; padding:16px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+      <b style="font-size:15px; color:var(--ink); display:block; margin-bottom:12px; border-bottom:2px solid var(--soft); padding-bottom:8px;">📦 Đơn Đang Xử Lý & Lịch Sử</b>
+      <div id="hist-active-order" style="margin-bottom:16px;"></div>
+      <div id="hist-past-orders"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="step7-profile">
+    <h2>Thông tin cá nhân 👤</h2>
+    <div style="background:var(--card); border:2px solid var(--line); border-radius:18px; padding:20px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+      <div style="font-size:14px; color:var(--ink); line-height:1.8;">
+        <b>Họ tên:</b> <span id="prof-name"></span> <br>
+        <b>SĐT Tài khoản:</b> <span id="prof-login-phone"></span> <br>
+        <b>SĐT Nhận hàng:</b> <span id="prof-phone"></span> <br>
+        <b>Địa chỉ giao hàng:</b> <span id="prof-address"></span> <br>
+        <div style="margin-top:10px; padding-top:10px; border-top:1.5px dashed #cfc7b2;">
+          <b style="color:var(--purple); font-size:15px;">🎫 Ticket hiện có: <span id="prof-ticket-count">0</span> vé</b>
+        </div>
+        <div id="prof-vip-status-box" style="margin-top:10px; padding-top:10px; border-top:1.5px dashed #cfc7b2; display:none;">
+          <b style="color:var(--accent); font-size:15px;">👑 Cấp bậc: <span id="prof-tier-text">Thành viên VIP Black & Gold</span></b>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn outline" style="flex:1;" onclick="openEditProfileModal()">Cập nhật / Đổi PIN</button>
+        <button class="btn danger outline" style="flex:1;" onclick="logoutCustomer()">Đăng xuất</button>
+      </div>
+    </div>
+    <button class="btn" onclick="showScreen('step2-menu')">Quay lại đặt món</button>
+  </div>
+</div>
+
+<div class="bottom-cart-bar" id="bottom-cart-bar">
+  <div class="cart-info"><span id="bb-qty">0 món</span><b id="bb-total" style="color:var(--good); font-size:16px;">0đ</b></div>
+  <button class="btn-view-cart" onclick="showScreen('step3-cart')">Xem giỏ hàng ›</button>
+</div>
+
+<div class="modal-overlay" id="wheel-modal">
+  <div class="modal-card" style="text-align:center;">
+    <h3 style="color:var(--purple); margin-top:0; font-size:20px;">🎡 VÒNG QUAY MAY MẮN</h3>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Dùng Ticket để quay nhận voucher giảm giá từ quán!</p>
+    <div class="wheel-container">
+      <div class="wheel-pin"></div>
+      <div class="wheel" id="visual-wheel"></div>
+      <div class="wheel-center">😺</div>
+    </div>
+    <div style="background:#fff9f0; border:2px solid var(--accent); border-radius:16px; padding:12px; margin-bottom:12px;">
+      <div style="font-size:13px; font-weight:800; margin-bottom:4px;">Số vé: <span id="wheel-ticket-display" style="color:var(--bad); font-size:16px;">0</span> Ticket</div>
+      <div id="wheel-result-box" style="font-size:14px; font-weight:900; color:var(--good); min-height:22px;">Bấm quay để thử vận may!</div>
+    </div>
+    <div style="background:var(--card); border:2px solid var(--purple); border-radius:16px; padding:12px; margin-bottom:12px; text-align:left;">
+      <b style="font-size:13px; color:var(--purple); display:block; margin-bottom:6px;">🎒 Túi Voucher của bạn:</b>
+      <div id="modal-voucher-bag-list" style="font-size:12px; color:var(--muted); max-height:80px; overflow-y:auto;">Chưa có voucher nào.</div>
+    </div>
+    <div style="background:#fdfbf7; border:2px dashed var(--line); border-radius:16px; padding:12px; margin-bottom:16px; text-align:left;">
+      <b style="font-size:13px; color:var(--ink); display:block; margin-bottom:6px;">📜 Lịch sử vòng quay của bạn:</b>
+      <div id="modal-spin-history" style="font-size:12px; color:var(--muted); max-height:90px; overflow-y:auto;">Chưa có lượt quay nào.</div>
+    </div>
+    <div style="display:flex; gap:12px;">
+      <button class="btn outline" onclick="document.getElementById('wheel-modal').style.display='none'">Đóng</button>
+      <button class="btn success" id="spin-btn" style="flex:2; background:var(--purple); border-color:var(--purple);" onclick="spinWheel()">QUAY NGAY (1 TICKET)</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="edit-profile-modal">
+  <div class="modal-card">
+    <h3 style="margin-top:0;">Cập nhật thông tin & Đổi PIN</h3>
+    <div class="input-group"><label>Tên của bạn</label><input type="text" id="edit-name"></div>
+    <div class="input-group"><label>Số ĐT nhận hàng</label><input type="tel" id="edit-delivery-phone" maxlength="10"></div>
+    <div class="input-group"><label>Địa chỉ nhận hàng</label><textarea id="edit-address" rows="2"></textarea></div>
+    <div class="input-group"><label>Mã PIN mới (Bỏ trống nếu không đổi)</label><input type="password" id="edit-pin" placeholder="Mã PIN 4-6 số mới" maxlength="6"></div>
+    <div class="input-group"><label>Xác nhận lại mã PIN mới *</label><input type="password" id="edit-pin-confirm" placeholder="Nhập lại mã PIN mới ở trên" maxlength="6"></div>
+    <div style="display:flex; gap:12px; margin-top:20px;">
+      <button class="btn outline" onclick="document.getElementById('edit-profile-modal').style.display='none'">Hủy</button>
+      <button class="btn success" style="flex:2;" onclick="saveEditProfile()">LƯU LẠI</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="product-modal">
+  <div class="modal-card">
+    <h3 id="m-prod-name" style="margin-top:0; font-size:20px; font-weight:900;">Tên Món</h3>
+    <p style="font-size:13px; font-weight:800; margin-bottom:8px;">Chọn Size (Bắt buộc):</p>
+    <div class="size-selector" id="m-size-list"></div>
+    <p style="font-size:13px; font-weight:800; margin-bottom:8px;">Thêm Topping (Tùy chọn):</p>
+    <div class="topping-list" id="m-topping-list"></div>
+    <div class="input-group"><label>Ghi chú cho món này (Ít đá, ít ngọt...)</label><input type="text" id="m-note" placeholder="Tùy chọn..."></div>
+    <div style="display:flex; gap:12px; margin-top:20px;">
+      <button class="btn outline" onclick="closeModal()">Hủy</button>
+      <button class="btn outline" id="btn-modal-split" style="display:none; flex:1; font-size:12px;" onclick="splitCartItem()">Tách ly riêng</button>
+      <button class="btn" id="btn-modal-add" style="flex:2;" onclick="addToCart()">THÊM VÀO GIỎ</button>
+      <button class="btn" id="btn-modal-update" style="display:none; flex:2;" onclick="updateCartItem()">CẬP NHẬT</button>
+    </div>
+  </div>
+</div>
+
+<div id="floating-order-tag" class="floating-tag" onclick="toggleChatWindow()" style="display:none;">
+  <div class="pulse-dot"></div>
+  <span id="floating-status-text">Đang xử lý đơn...</span>
+  <div style="background:var(--soft); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; border:1.5px solid var(--line);">💬</div>
+  <div id="chat-unread-badge" style="display:none; position:absolute; top:-5px; right:-5px; background:var(--bad); color:#fff; font-size:10px; font-weight:900; width:20px; height:20px; border-radius:50%; align-items:center; justify-content:center; border:2px solid #fff;">0</div>
+</div>
+
+<div id="chat-window" class="chat-window">
+  <div class="chat-header"><b>Trò chuyện với quán</b><span style="cursor:pointer; font-size:18px; color:var(--bad);" onclick="toggleChatWindow()">✕</span></div>
+  <div class="chat-body" id="chat-messages"><div style="text-align:center; font-size:12px; color:var(--muted); margin-top:20px;">Nhắn tin cho quán nếu cần hỗ trợ thêm nhé!</div></div>
+  <div class="chat-footer"><input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." onkeypress="if(event.key === 'Enter') sendChatMessage()"><button onclick="sendChatMessage()">Gửi</button></div>
+</div>
+
+<script>
+let MEOXAM_MENU = [];
+let TOPPINGS = [];
+let ALL_CATEGORIES = [];
+let ALL_ORDERS = [];
+let WHEEL_CONFIG = [];
+let PRODUCT_IMAGES = {};
+let SHOP_WHEEL_CONFIG = null;
+
+let customer = { 
+  loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', 
+  tickets: 2, ticketLedger: [], vouchers: [], lastLoginTime: 0, 
+  nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] 
+};
+
+function syncTicketCount() {
+  if(!customer.ticketLedger) customer.ticketLedger = [];
+  customer.tickets = customer.ticketLedger.filter(t => t.status === 'unused').length;
+}
+function addTicketToLedger(source, sourceOrderId) {
+  if(!customer.ticketLedger) customer.ticketLedger = [];
+  customer.ticketLedger.push({ id: uid(), source: source, sourceOrderId: sourceOrderId || null, status: 'unused', voucherId: null });
+  syncTicketCount();
+}
+function useOneTicketFromLedger() {
+  if(!customer.ticketLedger) customer.ticketLedger = [];
+  const unused = customer.ticketLedger.filter(t => t.status === 'unused');
+  if(unused.length === 0) return null;
+  let entry = unused.find(t => t.source === 'order');
+  if(!entry) entry = unused[unused.length - 1];
+  if(entry) { entry.status = 'used'; syncTicketCount(); }
+  return entry || null;
+}
+function migrateLegacyTicketsToLedger(rawData) {
+  if(Array.isArray(rawData.ticketLedger)) return rawData.ticketLedger;
+  const legacyCount = rawData.tickets !== undefined ? rawData.tickets : 2;
+  const ledger = [];
+  for(let i = 0; i < legacyCount; i++) {
+    ledger.push({ id: uid(), source: 'legacy', sourceOrderId: null, status: 'unused', voucherId: null });
+  }
+  return ledger;
+}
+
+let cart = [];
+let activeCat = '';
+let paymentMethod = 'Tiền mặt';
+let activeOrderId = null;
+let isMergingOrder = false;
+let timerInterval = null;
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCOn2zacXgFh_X5r0y_gB1hZWmfccPKwhQ",
+  authDomain: "tra-sua-meo-xam.firebaseapp.com",
+  databaseURL: "https://tra-sua-meo-xam-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tra-sua-meo-xam",
+  storageBucket: "tra-sua-meo-xam.firebasestorage.app",
+  messagingSenderId: "822227863579",
+  appId: "1:822227863579:web:09f4ac451d2dd51bd250be"
+};
+if (!firebase.apps.length) { firebase.initializeApp(FIREBASE_CONFIG); }
+const db = firebase.database();
+
+const DEFAULT_WHEEL_CONFIG = [
+  { name: "Giảm 50%", ratio: 10, discount: 50, color: "#e74c3c" },
+  { name: "Chúc may mắn", ratio: 20, discount: 0, color: "#f39c12" },
+  { name: "Giảm 40%", ratio: 10, discount: 40, color: "#f1c40f" },
+  { name: "Giảm 30%", ratio: 15, discount: 30, color: "#2ecc71" },
+  { name: "Giảm 20%", ratio: 15, discount: 20, color: "#3498db" },
+  { name: "Chúc may mắn", ratio: 15, discount: 0, color: "#9b59b6" },
+  { name: "Giảm 10%", ratio: 10, discount: 10, color: "#e67e22" },
+  { name: "1 Ly Free", ratio: 5, discount: 100, color: "#7f8c8d" }
+];
+
+db.ref('meoxam_data/productImages').on('value', snap => {
+  PRODUCT_IMAGES = snap.val() || {};
+  if(document.getElementById('step2-menu').classList.contains('active')){
+    renderMenu();
+  }
+});
+
+const WHEEL_COLOR_PALETTE = ['#e74c3c','#f39c12','#f1c40f','#2ecc71','#3498db','#9b59b6','#e67e22','#7f8c8d','#1abc9c','#34495e'];
+function normalizeWheelConfig(raw) {
+  let list = [];
+  if (Array.isArray(raw)) {
+    list = raw.filter(Boolean);
+  } else if (raw && typeof raw === 'object') {
+    list = Object.keys(raw).sort().map(k => raw[k]).filter(Boolean);
+  }
+  if (list.length === 0) return DEFAULT_WHEEL_CONFIG;
+  return list.map((it, idx) => ({
+    name: it.name || 'Phần thưởng',
+    discount: (it.discount !== undefined) ? Number(it.discount) : Number(it.discountValue || 0),
+    ratio: (it.ratio !== undefined) ? Number(it.ratio) : Number(it.weight || 1),
+    color: it.color || WHEEL_COLOR_PALETTE[idx % WHEEL_COLOR_PALETTE.length]
+  }));
+}
+
+let SHOP_TICKET_CONFIG = { spinRate: 10, rewardAmount: 1, voucherDiscountRate: 5 };
+db.ref('meoxam_data/config').on('value', snap => {
+  const cfg = snap.val() || {};
+  SHOP_TICKET_CONFIG = {
+    spinRate: cfg.ticketSpinRate || 10,
+    rewardAmount: cfg.ticketRewardAmount || 1,
+    voucherDiscountRate: cfg.voucherDiscountRate || 5
+  };
+  SHOP_WHEEL_CONFIG = cfg.wheel_config || null;
+  WHEEL_CONFIG = normalizeWheelConfig(cfg.wheel_config);
+  renderDynamicWheel();
+}, err => {
+  WHEEL_CONFIG = DEFAULT_WHEEL_CONFIG;
+  renderDynamicWheel();
+});
+
+function renderDynamicWheel() {
+  const wheelEl = document.getElementById('visual-wheel');
+  if(!wheelEl) return;
+  const totalSectors = WHEEL_CONFIG.length;
+  let gradientStops = [];
+  let sectorsHtml = '';
+  let currentDeg = 0;
+  const degPerSector = 360 / totalSectors;
+  WHEEL_CONFIG.forEach((sec, index) => {
+    const startDeg = currentDeg;
+    const endDeg = currentDeg + degPerSector;
+    gradientStops.push(`${sec.color || '#e74c3c'} ${startDeg}deg ${endDeg}deg`);
+    const textAngle = startDeg + (degPerSector / 2);
+    sectorsHtml += `<div class="wheel-sector" style="transform: rotate(${textAngle}deg);"><span>${sec.name}</span></div>`;
+    currentDeg = endDeg;
+  });
+  wheelEl.style.background = `conic-gradient(${gradientStops.join(', ')})`;
+  wheelEl.innerHTML = sectorsHtml;
+}
+
+function checkVIPStatus() {
+  if (!customer.loginPhone || !ALL_ORDERS) return false;
+  const myOrders = ALL_ORDERS.filter(o => o.customerPhone === customer.loginPhone && o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy');
+  const totalSpent = myOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+  return totalSpent >= 3000000;
+}
+
+function applyAutomaticVIPTheme() {
+  const isVIP = checkVIPStatus();
+  const body = document.body;
+  const vipBanner = document.getElementById('vip-status-banner');
+  const profVipBox = document.getElementById('prof-vip-status-box');
+  const headerTitle = document.getElementById('header-title-text');
+  if (isVIP) {
+    body.classList.add('vip-mode');
+    if (vipBanner) vipBanner.style.display = 'block';
+    if (profVipBox) profVipBox.style.display = 'block';
+  } else {
+    body.classList.remove('vip-mode');
+    if (vipBanner) vipBanner.style.display = 'none';
+    if (profVipBox) profVipBox.style.display = 'none';
+  }
+  updateHeaderCustomerName();
+}
+
+function updateHeaderCustomerName() {
+  const headerTitle = document.getElementById('header-title-text');
+  if(!headerTitle) return;
+  const old = document.getElementById('header-customer-name');
+  if(old) old.remove();
+  if(customer && customer.loginPhone && customer.name) {
+    const nameEl = document.createElement('div');
+    nameEl.id = 'header-customer-name';
+    nameEl.style.cssText = 'font-size:11.5px; font-weight:800; color:#e67e22; background:#fff9f0; border:1.5px solid #e67e22; border-radius:10px; padding:2px 8px; margin-top:4px; display:inline-block;';
+    nameEl.textContent = `👤 ${customer.name}`;
+    headerTitle.parentNode.appendChild(nameEl);
+  }
+}
+
+function startOnlinePresence() {
+  if(!customer.loginPhone) return;
+  if(window.onlineHeartbeatInterval) clearInterval(window.onlineHeartbeatInterval);
+  db.ref(`meoxam_data/customers/${customer.loginPhone}/lastSeen`).set(Date.now()).catch(()=>{});
+  db.ref(`meoxam_data/customers/${customer.loginPhone}/isOnline`).set(true).catch(()=>{});
+  window.onlineHeartbeatInterval = setInterval(() => {
+    if(customer.loginPhone) {
+      db.ref(`meoxam_data/customers/${customer.loginPhone}/lastSeen`).set(Date.now()).catch(()=>{});
+    }
+  }, 60000);
+  db.ref(`meoxam_data/customers/${customer.loginPhone}/isOnline`).onDisconnect().set(false);
+}
+function stopOnlinePresence() {
+  if(window.onlineHeartbeatInterval) {
+    clearInterval(window.onlineHeartbeatInterval);
+    window.onlineHeartbeatInterval = null;
+  }
+  if(customer.loginPhone) {
+    db.ref(`meoxam_data/customers/${customer.loginPhone}/isOnline`).set(false).catch(()=>{});
+  }
+}
+
+let customerRealtimeListener = null;
+function startCustomerRealtimeListener() {
+  if(!customer.loginPhone) return;
+  if(customerRealtimeListener) customerRealtimeListener.off();
+  customerRealtimeListener = db.ref(`meoxam_data/customers/${customer.loginPhone}`);
+  customerRealtimeListener.on('value', snap => {
+    const data = snap.val();
+    if(!data) return;
+
+    const remoteLedger = data.ticketLedger || [];
+    const localLedgerKey = JSON.stringify((customer.ticketLedger || []).map(t => ({ id: t.id, status: t.status })));
+    const remoteLedgerKey = JSON.stringify(remoteLedger.map(t => ({ id: t.id, status: t.status })));
+    if(localLedgerKey !== remoteLedgerKey) {
+      customer.ticketLedger = remoteLedger;
+      syncTicketCount();
+      updateTicketUI();
+    }
+
+    const remoteVouchers = data.vouchers || [];
+    const localVoucherKey = JSON.stringify((customer.vouchers || []).map(v => ({ id: v.id, used: v.used, revoked: v.revoked })));
+    const remoteVoucherKey = JSON.stringify(remoteVouchers.map(v => ({ id: v.id, used: v.used, revoked: v.revoked })));
+    if(localVoucherKey !== remoteVoucherKey) {
+      customer.vouchers = remoteVouchers;
+      updateTicketUI();
+      if(document.getElementById('step3-cart').classList.contains('active')) renderCartUI();
+    }
+
+    const remoteSpin = data.spinHistory || [];
+    if(JSON.stringify(customer.spinHistory || []) !== JSON.stringify(remoteSpin)) {
+      customer.spinHistory = remoteSpin;
+      updateTicketUI();
+    }
+
+    if(data.nextFreeTicketTime && data.nextFreeTicketTime !== customer.nextFreeTicketTime) {
+      customer.nextFreeTicketTime = data.nextFreeTicketTime;
+    }
+
+    localStorage.setItem('mx_active_session', JSON.stringify(customer));
+  });
+}
+
+db.ref('meoxam_data/products').on('value', snap => {
+  const products = snap.val() || [];
+  MEOXAM_MENU = products.filter(p => p.category !== 'Topping' && p.onMenu !== false);
+  TOPPINGS = products.filter(p => p.category === 'Topping' && p.onMenu !== false).map(t => {
+    const sizes = Object.keys(t.sizes);
+    return { id: t.id, name: t.name, price: t.sizes[sizes[0] || 'M'].price || 0 };
+  });
+  if (MEOXAM_MENU.length > 0) {
+    ALL_CATEGORIES = [...new Set(MEOXAM_MENU.map(m => m.category))];
+    if(!activeCat || !ALL_CATEGORIES.includes(activeCat)) activeCat = ALL_CATEGORIES[0];
+    if(document.getElementById('step2-menu').classList.contains('active')){
+      renderCategories(); renderMenu();
+    }
+  }
+}, err => { console.error("Lỗi tải menu:", err); });
+
+db.ref('meoxam_data/orders').on('value', snap => {
+  const oldOrders = ALL_ORDERS;
+  ALL_ORDERS = snap.val() || [];
+  if(customer.loginPhone) {
+    checkCanceledOrdersAndRevertRewards(oldOrders, ALL_ORDERS);
+    processCustomerOrders(customer.loginPhone);
+    applyAutomaticVIPTheme();
+    if(document.getElementById('step6-history').classList.contains('active')){ renderHistoryUI(); }
+  }
+}, err => { console.error("Lỗi tải đơn hàng:", err); });
+
+function checkCanceledOrdersAndRevertRewards(oldList, newList) {
+  if(!oldList || !Array.isArray(oldList)) return;
+  if(!customer.vouchers) customer.vouchers = [];
+  if(!customer.spinHistory) customer.spinHistory = [];
+  if(!customer.ticketLedger) customer.ticketLedger = [];
+
+  oldList.forEach(oldOrd => {
+    if(oldOrd.customerPhone !== customer.loginPhone) return;
+    if(oldOrd.status === 'Đã hủy' || oldOrd.status === 'Yêu cầu hủy') return;
+
+    const foundNew = newList.find(n => n.id === oldOrd.id);
+    const isCanceledOrDeleted = !foundNew
+      || foundNew.status === 'Đã hủy'
+      || foundNew.status === 'Yêu cầu hủy';
+
+    if(!isCanceledOrDeleted) return;
+
+    let hasChanges = false;
+    let notificationMsg = `⚠️ THÔNG BÁO VỀ ĐƠN HÀNG ĐÃ HỦY:\n`;
+
+    const relatedTickets = customer.ticketLedger.filter(t => t.sourceOrderId === oldOrd.id);
+    relatedTickets.forEach(ticket => {
+      if(ticket.status === 'unused'){
+        customer.ticketLedger = customer.ticketLedger.filter(t => t.id !== ticket.id);
+        notificationMsg += `- Thu hồi 1 vé chưa sử dụng do đơn hàng bị hủy.\n`;
+        hasChanges = true;
+      } else if(ticket.status === 'used'){
+        if(ticket.voucherId){
+          // Gắn cờ revoked = true thay vì xóa, để Firebase không tải ngược lại.
+          const v = customer.vouchers.find(vv => vv.id === ticket.voucherId);
+          if(v && !v.revoked){
+            v.revoked = true;
+            v.revokedReason = "Thu hồi do hủy đơn";
+            v.revokedAt = Date.now();
+            notificationMsg += `- Voucher "${v.name}" đã bị thu hồi.\n`;
+            hasChanges = true;
+          }
+        }
+        const sh = customer.spinHistory.find(s => s.ticketId === ticket.id);
+        if(sh && !sh.revoked){
+          sh.revoked = true;
+          sh.revokedReason = "Thu hồi do hủy đơn";
+          hasChanges = true;
+        }
+      }
+    });
+
+    if(oldOrd.appliedVoucher && oldOrd.appliedVoucher !== 'none'){
+      let appliedVoucherId = (customer.usedVoucherLog && customer.usedVoucherLog[oldOrd.id])
+        ? customer.usedVoucherLog[oldOrd.id] : null;
+      let appliedV = appliedVoucherId
+        ? customer.vouchers.find(v => v.id === appliedVoucherId)
+        : customer.vouchers.find(v => v.name === oldOrd.appliedVoucher && v.used);
+      
+      if(appliedV && appliedV.used){
+        notificationMsg += `- Voucher "${appliedV.name}" đã áp dụng cho đơn này được tính là đã sử dụng và không được hoàn lại.\n`;
+      }
+    }
+
+    syncTicketCount();
+
+    if(hasChanges){
+      saveCustomerDataToFirebase();
+      updateTicketUI();
+      setTimeout(() => { alert(notificationMsg); }, 300);
+    }
+  });
+}
+
+window.onload = () => {
+  const activeSession = localStorage.getItem('mx_active_session');
+  if(activeSession) {
+    try {
+      const c = JSON.parse(activeSession);
+      if(c && c.loginPhone) {
+        fetchCustomerData(c.loginPhone, () => { showScreen('step2-menu'); });
+        return;
+      }
+    } catch(e){ localStorage.removeItem('mx_active_session'); }
+  }
+  customer = { loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', tickets: 2, ticketLedger: [], vouchers: [], lastLoginTime: 0, nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] };
+  document.getElementById('login-phone').value = '';
+  document.getElementById('login-pin').value = '';
+  document.getElementById('reg-phone').value = '';
+  document.getElementById('reg-name').value = '';
+  document.getElementById('reg-address').value = '';
+  document.getElementById('reg-pin').value = '';
+  document.getElementById('reg-pin2').value = '';
+  showScreen('step1-info');
+};
+
+function fetchCustomerData(phone, callback) {
+  db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
+    const data = snap.val() || {};
+    const now = Date.now();
+    let nextFree = data.nextFreeTicketTime || 0;
+    if (!nextFree || nextFree < now) { nextFree = now + (3 * 24 * 60 * 60 * 1000); }
+    customer = {
+      loginPhone: phone, deliveryPhone: data.deliveryPhone || phone,
+      name: data.name || '', address: data.address || '', pin: data.pin || '',
+      ticketLedger: migrateLegacyTicketsToLedger(data),
+      vouchers: data.vouchers || [], lastLoginTime: now, nextFreeTicketTime: nextFree,
+      usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || []
+    };
+    syncTicketCount();
+    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime, nextFreeTicketTime: customer.nextFreeTicketTime }).catch(err => console.error(err));
+    localStorage.setItem('mx_active_session', JSON.stringify(customer));
+    startCustomerRealtimeListener();
+    startOnlinePresence();
+    updateTicketUI();
+    updateHeaderCustomerName();
+    startTicketCountdownTimer();
+    processCustomerOrders(phone);
+    applyAutomaticVIPTheme();
+    renderCategories();
+    renderMenu();
+    if(callback) callback();
+  }).catch(err => { alert("Lỗi kết nối: " + err.message); });
+}
+
+function startTicketCountdownTimer() {
+  if(timerInterval) clearInterval(timerInterval);
+  const updateTimer = () => {
+    const now = Date.now();
+    const timerEl = document.getElementById('banner-timer-text');
+    if (customer.nextFreeTicketTime <= now) {
+      addTicketToLedger('free', null);
+      customer.nextFreeTicketTime = now + (3 * 24 * 60 * 60 * 1000);
+      saveCustomerDataToFirebase();
+      updateTicketUI();
+    }
+    const remaining = Math.max(0, customer.nextFreeTicketTime - now);
+    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+    if(timerEl) { timerEl.textContent = `⏳ Vé tiếp theo: ${days}d ${hours}h ${minutes}m ${seconds}s`; }
+  };
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function switchAuthTab(tab) {
+  if(tab === 'login') {
+    document.getElementById('tab-btn-login').classList.add('active');
+    document.getElementById('tab-btn-register').classList.remove('active');
+    document.getElementById('form-login').style.display = 'block';
+    document.getElementById('form-register').style.display = 'none';
+  } else {
+    document.getElementById('tab-btn-register').classList.add('active');
+    document.getElementById('tab-btn-login').classList.remove('active');
+    document.getElementById('form-register').style.display = 'block';
+    document.getElementById('form-login').style.display = 'none';
+  }
+}
+
+function doLogin() {
+  const phone = document.getElementById('login-phone').value.trim();
+  const pin = document.getElementById('login-pin').value.trim();
+  if(!/^\d{10}$/.test(phone)) return alert("Số điện thoại tài khoản phải gồm đúng 10 chữ số!");
+  if(!pin) return alert("Vui lòng nhập mã PIN!");
+  db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
+    const data = snap.val();
+    if(!data) { alert("Tài khoản chưa được đăng ký! Vui lòng chuyển sang Đăng ký mới."); return; }
+    if(data.pin !== pin) { alert("Sai mã PIN! Vui lòng thử lại."); return; }
+    fetchCustomerData(phone, () => { showScreen('step2-menu'); });
+  }).catch(err => { alert("Lỗi đăng nhập: " + err.message); });
+}
+
+function doRegister() {
+  const phone = document.getElementById('reg-phone').value.trim();
+  const name = document.getElementById('reg-name').value.trim();
+  const address = document.getElementById('reg-address').value.trim();
+  const pin = document.getElementById('reg-pin').value.trim();
+  const pin2 = document.getElementById('reg-pin2').value.trim();
+  if(!/^\d{10}$/.test(phone)) return alert("Số điện thoại đăng ký phải gồm 10 chữ số!");
+  if(!name || !address) return alert("Vui lòng nhập đầy đủ Tên và Địa chỉ!");
+  if(!/^\d{4,6}$/.test(pin)) return alert("Mã PIN phải từ 4 đến 6 chữ số!");
+  if(pin !== pin2) return alert("Xác nhận mã PIN không khớp!");
+  db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
+    if(snap.exists()) { alert("Số điện thoại này đã được đăng ký! Vui lòng chuyển sang Đăng Nhập."); return; }
+    const now = Date.now();
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+    const newCustomer = { 
+      name: name, deliveryPhone: phone, address: address, pin: pin, tickets: 2, 
+      ticketLedger: [
+        { id: uid(), source: 'signup', sourceOrderId: null, status: 'unused', voucherId: null },
+        { id: uid(), source: 'signup', sourceOrderId: null, status: 'unused', voucherId: null }
+      ],
+      vouchers: [], lastLoginTime: now, nextFreeTicketTime: now + THREE_DAYS_MS,
+      usedVoucherLog: {}, spinHistory: []
+    };
+    db.ref(`meoxam_data/customers/${phone}`).set(newCustomer).then(() => {
+      alert("Đăng ký thành công! Bạn nhận được 2 Ticket miễn phí.");
+      fetchCustomerData(phone, () => { showScreen('step2-menu'); });
+    }).catch(err => { alert("Lỗi lưu thông tin: " + err.message); });
+  }).catch(err => { alert("Lỗi kết nối: " + err.message); });
+}
+
+function logoutCustomer() {
+  if(confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+    if(timerInterval) clearInterval(timerInterval);
+    stopOnlinePresence();
+    if(customerRealtimeListener) { customerRealtimeListener.off(); customerRealtimeListener = null; }
+    localStorage.removeItem('mx_active_session');
+    customer = { loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', tickets: 2, ticketLedger: [], vouchers: [], lastLoginTime: 0, nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] };
+    document.getElementById('login-phone').value = '';
+    document.getElementById('login-pin').value = '';
+    activeOrderId = null;
+    cart = [];
+    document.body.classList.remove('vip-mode');
+    document.getElementById('floating-order-tag').style.display = 'none';
+    document.getElementById('chat-window').style.display = 'none';
+    const hn = document.getElementById('header-customer-name');
+    if(hn) hn.remove();
+    switchAuthTab('login');
+    showScreen('step1-info');
+  }
+}
+
+function openEditProfileModal() {
+  document.getElementById('edit-name').value = customer.name;
+  document.getElementById('edit-delivery-phone').value = customer.deliveryPhone;
+  document.getElementById('edit-address').value = customer.address;
+  document.getElementById('edit-pin').value = '';
+  document.getElementById('edit-pin-confirm').value = '';
+  document.getElementById('edit-profile-modal').style.display = 'flex';
+}
+
+function saveEditProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  const dPhone = document.getElementById('edit-delivery-phone').value.trim();
+  const address = document.getElementById('edit-address').value.trim();
+  const newPin = document.getElementById('edit-pin').value.trim();
+  const confirmPin = document.getElementById('edit-pin-confirm').value.trim();
+  if(!name || !dPhone || !address) return alert("Không được để trống thông tin!");
+  if(!/^\d{10}$/.test(dPhone)) return alert("SĐT Giao hàng phải là 10 số!");
+  let finalPin = customer.pin;
+  if(newPin) {
+    if(!/^\d{4,6}$/.test(newPin)) return alert("Mã PIN mới phải từ 4 đến 6 số!");
+    if(newPin !== confirmPin) return alert("Mã PIN xác nhận không khớp!");
+    finalPin = newPin;
+  }
+  const updatedData = { name: name, deliveryPhone: dPhone, address: address, pin: finalPin };
+  db.ref(`meoxam_data/customers/${customer.loginPhone}`).update(updatedData).then(() => {
+    alert("Cập nhật thông tin thành công!");
+    customer.name = updatedData.name;
+    customer.deliveryPhone = updatedData.deliveryPhone;
+    customer.address = updatedData.address;
+    customer.pin = updatedData.pin;
+    localStorage.setItem('mx_active_session', JSON.stringify(customer));
+    document.getElementById('edit-profile-modal').style.display = 'none';
+    updateHeaderCustomerName();
+    openProfileScreen();
+  }).catch(err => { alert("Lỗi khi cập nhật: " + err.message); });
+}
+
+function updateTicketUI() {
+  const elBanner = document.getElementById('banner-ticket-count');
+  if(elBanner) elBanner.textContent = `🎫 Vé: ${customer.tickets || 0} Ticket`;
+  const elWheel = document.getElementById('wheel-ticket-display');
+  if(elWheel) elWheel.textContent = customer.tickets || 0;
+  const elProf = document.getElementById('prof-ticket-count');
+  if(elProf) elProf.textContent = customer.tickets || 0;
+  
+  const modalBag = document.getElementById('modal-voucher-bag-list');
+  // Lọc chuẩn xác: Loại bỏ những voucher ĐÃ DÙNG hoặc ĐÃ THU HỒI
+  const bagVouchers = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
+  if(modalBag) {
+    if(bagVouchers.length > 0) {
+      modalBag.innerHTML = bagVouchers.map(v => 
+        `<div style="padding:4px 0; border-bottom:1px dashed #cfc7b2; font-weight:700; color:var(--ink);">🎟️ ${v.name}</div>`
+      ).join('');
+    } else { modalBag.innerHTML = 'Túi voucher trống. Hãy quay để nhận quà!'; }
+  }
+  
+  const spinHistEl = document.getElementById('modal-spin-history');
+  if(spinHistEl) {
+    if(customer.spinHistory && customer.spinHistory.length > 0) {
+      spinHistEl.innerHTML = customer.spinHistory.slice(-5).reverse().map(s => `<div style="padding:3px 0; border-bottom:1px dashed #e4ded0;">• [${s.time}] <b>${s.result}</b>${s.revoked ? ' <span style="color:var(--bad); font-weight:800;">(Đã thu hồi)</span>' : ''}</div>`).join('');
+    } else { spinHistEl.innerHTML = 'Chưa có lượt quay nào.'; }
+  }
+}
+
+function openWheelModal() {
+  updateTicketUI();
+  document.getElementById('wheel-result-box').textContent = "Bấm quay để thử vận may!";
+  document.getElementById('wheel-modal').style.display = 'flex';
+}
+
+let currentWheelRotation = 0;
+
+function pickWeightedIndex() {
+  const totalRatio = WHEEL_CONFIG.reduce((sum, item) => sum + (Number(item.ratio) || 1), 0);
+  let randomNum = Math.random() * totalRatio;
+  for (let i = 0; i < WHEEL_CONFIG.length; i++) {
+    let r = Number(WHEEL_CONFIG[i].ratio) || 1;
+    if (randomNum < r) return i;
+    randomNum -= r;
+  }
+  return 0;
+}
+
+function spinWheel() {
+  if((customer.tickets || 0) <= 0) { alert("Bạn đã hết Ticket! Hãy đặt đơn có từ 3 món nước trở lên hoặc chờ nhận vé định kỳ nhé."); return; }
+  const usedTicketEntry = useOneTicketFromLedger();
+  if(!usedTicketEntry) { alert("Bạn đã hết Ticket!"); return; }
+  saveCustomerDataToFirebase();
+  updateTicketUI();
+  document.getElementById('spin-btn').disabled = true;
+  document.getElementById('wheel-result-box').textContent = "🎡 Đang quay...";
+  const totalSectors = WHEEL_CONFIG.length;
+  const degPerSector = 360 / totalSectors;
+  const winningIndex = pickWeightedIndex();
+  const targetSectorCenterAngle = (winningIndex * degPerSector) + (degPerSector / 2);
+  const extraRounds = 360 * 5;
+  const finalDegree = extraRounds + (360 - targetSectorCenterAngle);
+  currentWheelRotation += (finalDegree - (currentWheelRotation % 360));
+  const wheelEl = document.getElementById('visual-wheel');
+  wheelEl.style.transform = `rotate(${currentWheelRotation}deg)`;
+  setTimeout(() => {
+    document.getElementById('spin-btn').disabled = false;
+    const wonItem = WHEEL_CONFIG[winningIndex];
+    const nowStr = new Date(getVNDate()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+    if(!customer.spinHistory) customer.spinHistory = [];
+    if (!wonItem.name || wonItem.name.toLowerCase().includes("chúc may mắn") || Number(wonItem.discount) === 0) {
+      document.getElementById('wheel-result-box').innerHTML = `😢 <b style="color:var(--bad);">Rất tiếc! Chúc bạn may mắn lần sau.</b>`;
+      customer.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: usedTicketEntry.id, revoked: false });
+    } else {
+      document.getElementById('wheel-result-box').innerHTML = `🎉 Trúng: <b style="color:var(--good);">${wonItem.name}</b>`;
+      if(!customer.vouchers) customer.vouchers = [];
+      let newV = { id: uid(), name: wonItem.name, used: false, revoked: false };
+      customer.vouchers.push(newV);
+      usedTicketEntry.voucherId = newV.id;
+      customer.spinHistory.push({ time: nowStr, result: wonItem.name, ticketId: usedTicketEntry.id, revoked: false });
+    }
+    saveCustomerDataToFirebase();
+    updateTicketUI();
+  }, 4000);
+}
+
+function saveCustomerDataToFirebase() {
+  const phone = customer.loginPhone;
+  if (!phone) return;
+  const ref = db.ref(`meoxam_data/customers/${phone}`);
+  ref.once('value').then(snap => {
+    const remote = snap.val() || {};
+    const remoteLedger = Array.isArray(remote.ticketLedger) ? remote.ticketLedger : [];
+    const localIds = new Set((customer.ticketLedger || []).map(t => t.id));
+    const missingLedger = remoteLedger.filter(t => !localIds.has(t.id));
+    customer.ticketLedger = (customer.ticketLedger || []).concat(missingLedger);
+    syncTicketCount();
+
+    const remoteVouchers = Array.isArray(remote.vouchers) ? remote.vouchers : [];
+    const localVIds = new Set((customer.vouchers || []).map(v => v.id));
+    const missingVouchers = remoteVouchers.filter(v => !localVIds.has(v.id));
+    customer.vouchers = (customer.vouchers || []).concat(missingVouchers);
+
+    return ref.update({
+      tickets: customer.tickets, ticketLedger: customer.ticketLedger,
+      vouchers: customer.vouchers, lastLoginTime: customer.lastLoginTime,
+      nextFreeTicketTime: customer.nextFreeTicketTime,
+      usedVoucherLog: customer.usedVoucherLog, spinHistory: customer.spinHistory
+    });
+  }).then(() => {
+    localStorage.setItem('mx_active_session', JSON.stringify(customer));
+    updateTicketUI();
+  }).catch(err => {
+    console.error("Lỗi lưu dữ liệu:", err);
+  });
+}
+
+function fmt(n) { return (n||0).toLocaleString('vi-VN'); }
+function uid() { return Math.random().toString(36).substr(2, 9); }
+function getVNDate() { return new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const bottomBar = document.getElementById('bottom-cart-bar');
+  const btnProfile = document.getElementById('btn-profile-icon');
+  const btnHistory = document.getElementById('btn-history-icon');
+  const btnWheel = document.getElementById('btn-wheel-icon');
+  if (id === 'step2-menu' && cart.length > 0) { bottomBar.classList.add('visible'); } else { bottomBar.classList.remove('visible'); }
+  if (id === 'step1-info' || id === 'step5-success') { btnProfile.style.display = 'none'; btnHistory.style.display = 'none'; btnWheel.style.display = 'none'; }
+  else { btnProfile.style.display = 'flex'; btnHistory.style.display = 'flex'; btnWheel.style.display = 'flex'; }
+}
+
+function goToMenuIfNeeded() {
+  if(customer.loginPhone && (document.getElementById('step6-history').classList.contains('active') || document.getElementById('step7-profile').classList.contains('active'))) {
+    showScreen('step2-menu');
+  }
+}
+
+function processCustomerOrders(phoneNum) {
+  const active = ALL_ORDERS.find(o => o.customerPhone === phoneNum && o.status !== 'Hoàn thành' && o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy');
+  if(active) {
+    activeOrderId = active.id;
+    document.getElementById('floating-order-tag').style.display = 'flex';
+    document.getElementById('floating-status-text').textContent = active.status || 'Đang xử lý đơn...';
+    listenToChat(active.id);
+  } else {
+    activeOrderId = null;
+    document.getElementById('floating-order-tag').style.display = 'none';
+    document.getElementById('chat-window').style.display = 'none';
+  }
+}
+
+function openProfileScreen() {
+  document.getElementById('prof-name').textContent = customer.name;
+  document.getElementById('prof-login-phone').textContent = customer.loginPhone;
+  document.getElementById('prof-phone').textContent = customer.deliveryPhone;
+  document.getElementById('prof-address').textContent = customer.address;
+  document.getElementById('prof-ticket-count').textContent = customer.tickets || 0;
+  showScreen('step7-profile');
+}
+
+function openHistoryScreen() { renderHistoryUI(); showScreen('step6-history'); }
+
+function renderHistoryUI() {
+  const myOrders = ALL_ORDERS.filter(o => o.customerPhone === customer.loginPhone);
+  const activeOrder = myOrders.find(o => o.status !== 'Hoàn thành' && o.status !== 'Đã hủy');
+  const pastOrders = myOrders.filter(o => o.status === 'Hoàn thành' || o.status === 'Đã hủy');
+  const activeContainer = document.getElementById('hist-active-order');
+  if(activeOrder) {
+    const itemsHtml = (activeOrder.items||[]).map(i => `<div class="history-item-line">• ${i.name} (${i.size}) x ${i.qty}</div><div class="history-item-sub">${i.toppings?'+ '+i.toppings.map(t=>t.name).join(', '):''}</div>`).join('');
+    const isRequestCancel = activeOrder.status === 'Yêu cầu hủy';
+    const hasVoucher = activeOrder.appliedVoucher && activeOrder.appliedVoucher !== 'none';
+    activeContainer.innerHTML = `
+      <div class="history-card ${hasVoucher ? 'voucher-glow' : ''}" style="border-color:${isRequestCancel ? 'var(--bad)' : (hasVoucher ? 'var(--purple)' : 'var(--accent)')};">
+        <div class="history-card-header"><span style="color:${isRequestCancel ? 'var(--bad)' : 'var(--accent)'};">Trạng thái: ${activeOrder.status||'Đang xử lý'}</span><span style="color:var(--good);">${fmt(activeOrder.totalPrice)}đ</span></div>
+        ${hasVoucher ? `<div style="font-size:12px; color:var(--purple); font-weight:800; margin-bottom:6px;">✨ Áp dụng Voucher: ${activeOrder.appliedVoucher}</div>` : ''}
+        <div style="margin-bottom:12px;">${itemsHtml}</div>
+        <div style="display:flex; gap:10px;">
+          ${isRequestCancel ? `<div style="text-align:center; width:100%; font-size:12px; color:var(--bad); font-weight:700;">Quán đang xác nhận hủy đơn của bạn...</div>` 
+            : `<button class="btn danger outline" style="flex:1;" onclick="requestCancelOrder('${activeOrder.id}')">❌ Hủy Đơn</button>
+               <button class="btn" style="flex:2;" onclick="startMergeOrder()">➕ Gọi Thêm</button>`}
+        </div>
+      </div>`;
+  } else { activeContainer.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--muted);">Không có đơn nào đang chờ xử lý.</p>'; }
+  const pastContainer = document.getElementById('hist-past-orders');
+  if(pastOrders.length > 0) {
+    pastContainer.innerHTML = pastOrders.map(o => {
+      const isCanceled = o.status === 'Đã hủy';
+      const hasVoucher = o.appliedVoucher && o.appliedVoucher !== 'none';
+      const itemsHtml = (o.items||[]).map(i => `<div class="history-item-line">• ${i.name} (${i.size}) x ${i.qty}</div>`).join('');
+      return `
+        <div class="history-card ${hasVoucher ? 'voucher-glow' : ''}" style="opacity:0.9;">
+          <div class="history-card-header"><span>${o.time.split(' — ')[1]} ${isCanceled?'<b style="color:red">(Đã Hủy)</b>':''}</span><span style="color:var(--good);">${fmt(o.totalPrice)}đ</span></div>
+          ${hasVoucher ? `<div style="font-size:12px; color:var(--purple); font-weight:800; margin-bottom:6px;">✨ Áp dụng Voucher: ${o.appliedVoucher}</div>` : ''}
+          <div>${itemsHtml}</div>
+        </div>`;
+    }).join('');
+  } else { pastContainer.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--muted);">Chưa có lịch sử đơn hàng cũ.</p>'; }
+}
+
+function startMergeOrder() {
+  isMergingOrder = true;
+  document.getElementById('alert-merge-order').style.display = 'block';
+  document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN GỌI THÊM';
+  document.getElementById('payment-subtitle').textContent = 'Xác nhận gộp các món này vào đơn hiện tại.';
+  document.getElementById('payment-options-container').style.display = 'none';
+  renderCategories();
+  renderMenu();
+  showScreen('step2-menu');
+}
+
+function requestCancelOrder(orderIdToCancel) {
+  if(confirm("Bạn đang muốn hủy đơn, bạn có xác nhận điều này chứ :(")) {
+    db.ref('meoxam_data/orders').once('value').then(snap => {
+      let orders = snap.val() || [];
+      let idx = orders.findIndex(o => o.id === orderIdToCancel);
+      if(idx > -1) {
+        orders[idx].generalNote = (orders[idx].generalNote || '') + " | [KHÁCH YÊU CẦU HỦY ĐƠN]";
+        orders[idx].status = 'Yêu cầu hủy';
+        return db.ref('meoxam_data/orders').set(orders);
+      }
+    }).then(() => { alert("Yêu cầu hủy đơn đã được gửi!"); renderHistoryUI(); })
+    .catch(err => alert("Lỗi: " + err.message));
+  }
+}
+
+function renderCategories() {
+  document.getElementById('cat-tabs').innerHTML = ALL_CATEGORIES.map(c => `<div class="cat-chip ${c === activeCat ? 'active' : ''}" onclick="changeCat('${c}')">${c}</div>`).join('');
+}
+function changeCat(cat) { activeCat = cat; renderCategories(); renderMenu(); }
+
+function renderMenu() {
+  const items = MEOXAM_MENU.filter(m => m.category === activeCat);
+  document.getElementById('menu-grid').innerHTML = items.map(item => {
+    const minPrice = Math.min(...Object.values(item.sizes).map(s => s.price));
+    const imgData = PRODUCT_IMAGES[item.id] || item.image;
+    let mediaHtml = imgData ? `<img src="${imgData}" alt="${item.name}">` : item.name.charAt(0).toUpperCase();
+    return `
+      <div class="menu-item" onclick="openItemModal('${item.id}')">
+        <div><div class="item-img-placeholder">${mediaHtml}</div><div class="item-name">${item.name}</div></div>
+        <div class="item-price">Từ ${fmt(minPrice)}đ</div>
+        <div class="add-btn">+</div>
+      </div>`;
+  }).join('');
+}
+
+let modalItem = null, modalSelectedSize = null;
+let editCartIdx = -1; // Biến lưu index của món đang sửa trong giỏ hàng
+
+// Mở Modal từ Menu
+function openItemModal(id) {
+  editCartIdx = -1; // Đánh dấu là đang thêm mới
+  modalItem = MEOXAM_MENU.find(m => m.id === id);
+  if(!modalItem) return;
+  document.getElementById('m-prod-name').textContent = modalItem.name;
+  document.getElementById('m-note').value = '';
+  const sizes = Object.keys(modalItem.sizes);
+  modalSelectedSize = sizes[0] || 'M';
+  renderModalSizes();
+  document.getElementById('m-topping-list').innerHTML = TOPPINGS.map((tp, idx) => `<label class="topping-item"><span>${tp.name} (+${fmt(tp.price)}đ)</span><input type="checkbox" id="m-top-${idx}" value="${tp.price}" data-name="${tp.name}"></label>`).join('') || '<p style="font-size:12px; color:var(--muted);">Không có topping.</p>';
+  
+  document.getElementById('btn-modal-add').style.display = 'block';
+  document.getElementById('btn-modal-update').style.display = 'none';
+  document.getElementById('btn-modal-split').style.display = 'none';
+  document.getElementById('product-modal').style.display = 'flex';
+}
+
+// Mở Modal từ Giỏ hàng (Để sửa hoặc tách ly)
+function openEditCartItem(idx) {
+  editCartIdx = idx;
+  const item = cart[idx];
+  modalItem = MEOXAM_MENU.find(m => m.id === item.prodId);
+  if(!modalItem) return;
+
+  document.getElementById('m-prod-name').textContent = item.name + (item.qty > 1 ? ` (Đang sửa chung ${item.qty} ly)` : '');
+  document.getElementById('m-note').value = item.note || '';
+  
+  modalSelectedSize = item.size;
+  renderModalSizes();
+
+  const toppingHtml = TOPPINGS.map((tp, i) => {
+      const isChecked = item.toppings.some(t => t.name === tp.name) ? 'checked' : '';
+      return `<label class="topping-item"><span>${tp.name} (+${fmt(tp.price)}đ)</span><input type="checkbox" id="m-top-${i}" value="${tp.price}" data-name="${tp.name}" ${isChecked}></label>`;
+  }).join('') || '<p style="font-size:12px; color:var(--muted);">Không có topping.</p>';
+  document.getElementById('m-topping-list').innerHTML = toppingHtml;
+
+  document.getElementById('btn-modal-add').style.display = 'none';
+  document.getElementById('btn-modal-update').style.display = 'block';
+  document.getElementById('btn-modal-split').style.display = item.qty > 1 ? 'block' : 'none';
+
+  document.getElementById('product-modal').style.display = 'flex';
+}
+
+function renderModalSizes() {
+  if(!modalItem) return;
+  const sizes = Object.keys(modalItem.sizes);
+  document.getElementById('m-size-list').innerHTML = sizes.map(sz => 
+    `<div class="size-btn ${sz === modalSelectedSize ? 'active' : ''}" onclick="selectModalSize('${sz}')">Size ${sz} <br><span style="font-size:12px;">${fmt(modalItem.sizes[sz].price)}đ</span></div>`
+  ).join('');
+}
+
+function selectModalSize(sz) {
+  modalSelectedSize = sz;
+  renderModalSizes();
+}
+
+function closeModal() { document.getElementById('product-modal').style.display = 'none'; }
+
+// Thêm món mới
+function addToCart() {
+  if(!modalItem) return;
+  const basePrice = modalItem.sizes[modalSelectedSize].price || 0;
+  const selTops = []; let topPrice = 0;
+  TOPPINGS.forEach((tp, idx) => {
+    const cb = document.getElementById(`m-top-${idx}`);
+    if(cb && cb.checked) { selTops.push({ name: tp.name, price: tp.price }); topPrice += tp.price; }
+  });
+  cart.push({ cartId: uid(), prodId: modalItem.id, name: modalItem.name, size: modalSelectedSize, basePrice, toppings: selTops, toppingPrice: topPrice, unitPrice: basePrice + topPrice, note: document.getElementById('m-note').value.trim(), qty: 1 });
+  closeModal(); updateBottomCartBar(); renderCartUI();
+}
+
+// Cập nhật lại món trong giỏ hàng
+function updateCartItem() {
+  if(editCartIdx === -1) return;
+  const item = cart[editCartIdx];
+  item.size = modalSelectedSize;
+  item.basePrice = modalItem.sizes[modalSelectedSize].price;
+
+  const selTops = []; let topPrice = 0;
+  TOPPINGS.forEach((tp, idx) => {
+      const cb = document.getElementById(`m-top-${idx}`);
+      if(cb && cb.checked) { selTops.push({ name: tp.name, price: tp.price }); topPrice += tp.price; }
+  });
+  item.toppings = selTops;
+  item.toppingPrice = topPrice;
+  item.unitPrice = item.basePrice + topPrice;
+  item.note = document.getElementById('m-note').value.trim();
+
+  closeModal(); renderCartUI(); updateBottomCartBar();
+}
+
+// Tính năng mới: Tách 1 ly ra khỏi nhóm (nếu qty > 1) để ghi chú riêng
+function splitCartItem() {
+  if(editCartIdx === -1) return;
+  const item = cart[editCartIdx];
+  if(item.qty <= 1) return;
+  
+  // 1. Giảm 1 ly ở mục hiện tại
+  item.qty -= 1; 
+  
+  // 2. Tạo bản sao của món đó với số lượng là 1 ly
+  const newItem = JSON.parse(JSON.stringify(item));
+  newItem.qty = 1;
+  newItem.cartId = uid();
+  
+  // 3. Chèn ly vừa tách vào ngay dưới nó trong giỏ hàng
+  cart.splice(editCartIdx + 1, 0, newItem);
+  closeModal();
+  renderCartUI();
+  updateBottomCartBar();
+  
+  // Tự động mở khung chỉnh sửa cho ly vừa tách ra
+  setTimeout(() => openEditCartItem(editCartIdx + 1), 100);
+}
+
+function updateBottomCartBar() {
+  const bar = document.getElementById('bottom-cart-bar');
+  if(cart.length === 0) { bar.classList.remove('visible'); return; }
+  document.getElementById('bb-qty').textContent = `${cart.reduce((s, i) => s + i.qty, 0)} món đã chọn`;
+  document.getElementById('bb-total').textContent = `${fmt(calculateFinalTotal().finalTotal)}đ`;
+  bar.classList.add('visible');
+}
+
+function updateVoucherDropdown() {
+  const selectEl = document.getElementById('selected-voucher');
+  if(!selectEl) return;
+  const currentVal = selectEl.value;
+  // KIỂM SOÁT VOUCHER CHUẨN XÁC: Loại bỏ voucher đã dùng VÀ voucher bị thu hồi
+  const validVouchers = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
+  let html = '<option value="none">-- Không dùng voucher --</option>';
+  validVouchers.forEach(v => {
+    html += `<option value="${v.id}">${v.name}</option>`;
+  });
+  selectEl.innerHTML = html;
+  selectEl.value = validVouchers.some(v => v.id === currentVal) ? currentVal : 'none';
+}
+
+function onVoucherSelectChange() { renderCartUI(); updateBottomCartBar(); }
+
+function calculateFinalTotal() {
+  let subtotal = cart.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
+  let discount = 0;
+  const selectEl = document.getElementById('selected-voucher');
+  const voucherId = selectEl ? selectEl.value : 'none';
+  let appliedVoucherName = 'none';
+  if(voucherId !== 'none') {
+    const vObj = (customer.vouchers || []).find(v => v.id === voucherId);
+    if(vObj) {
+      appliedVoucherName = vObj.name;
+      const nameLower = vObj.name.toLowerCase();
+      if (nameLower.includes("free") || nameLower.includes("1 ly")) {
+        if(cart.length > 0) { let minItemPrice = Math.min(...cart.map(i => i.unitPrice)); discount = minItemPrice; }
+      } else {
+        const percentMatch = vObj.name.match(/(\d+)\s*%/);
+        if (percentMatch) { const percent = parseInt(percentMatch[1]); discount = subtotal * (percent / 100); }
+      }
+    }
+  }
+  let rawTotal = subtotal - discount;
+  if(rawTotal < 0) rawTotal = 0;
+  let finalTotal = Math.round(rawTotal / 1000) * 1000;
+  if(finalTotal < rawTotal) finalTotal += 1000;
+  return { subtotal, discount, finalTotal, appliedVoucherName, voucherId };
+}
+
+function renderCartUI() {
+  updateVoucherDropdown();
+  const listUi = document.getElementById('cart-list-ui');
+  if(cart.length === 0) {
+    listUi.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:14px; padding:20px 0;">Chưa có món nào.</p>';
+    document.getElementById('cart-subtotal').textContent = '0đ';
+    document.getElementById('cart-discount-amt').textContent = '-0đ';
+    document.getElementById('cart-total-final').textContent = '0đ';
+    return;
+  }
+  listUi.innerHTML = cart.map((item, idx) => {
+    const tops = item.toppings.map(t => t.name).join(', ');
+    return `
+      <div class="cart-item-wrapper">
+        <div class="cart-item-bg-delete" onclick="cart.splice(${idx},1); renderCartUI(); updateBottomCartBar(); if(cart.length===0) showScreen('step2-menu');">🗑 Xóa</div>
+        <div class="cart-item-surface" style="transform:translateX(0);">
+          <div class="cart-item-header" onclick="openEditCartItem(${idx})" style="cursor:pointer; user-select:none;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${item.name} (${item.size}) <span style="font-size:11px; background:var(--soft); padding:2px 8px; border-radius:10px; border:1px solid var(--line);">✏️ Sửa</span>
+            </div>
+            <div style="color:var(--good);">${fmt(item.unitPrice)}đ</div>
+          </div>
+          ${tops ? `<div class="cart-item-sub">➕ ${tops}</div>` : ''}
+          ${item.note ? `<div class="cart-item-sub" style="color:var(--warn);">📝 ${item.note}</div>` : ''}
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+            <div style="font-weight:800; font-size:14px;">Thành tiền: <span style="color:var(--accent);">${fmt(item.unitPrice * item.qty)}đ</span></div>
+            <div class="qty-controls"><div class="qty-btn" onclick="updateQty(${idx}, -1)">-</div><div style="font-weight:900; width:20px; text-align:center;">${item.qty}</div><div class="qty-btn" onclick="updateQty(${idx}, 1)">+</div></div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  const calc = calculateFinalTotal();
+  document.getElementById('cart-subtotal').textContent = `${fmt(calc.subtotal)}đ`;
+  document.getElementById('cart-discount-amt').textContent = `-${fmt(calc.discount)}đ`;
+  document.getElementById('cart-total-final').textContent = `${fmt(calc.finalTotal)}đ`;
+}
+
+function updateQty(idx, delta) {
+  cart[idx].qty += delta;
+  if(cart[idx].qty <= 0) { if(confirm('Xóa món này khỏi giỏ?')) cart.splice(idx, 1); else cart[idx].qty = 1; }
+  renderCartUI(); updateBottomCartBar(); if(cart.length === 0) showScreen('step2-menu');
+}
+function clearCart() { if(confirm('Xóa toàn bộ giỏ hàng?')) { cart = []; renderCartUI(); updateBottomCartBar(); showScreen('step2-menu'); } }
+function goToPayment() { if(cart.length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
+function selectPayment(method) {
+  paymentMethod = method;
+  document.getElementById('pay-cash').classList.remove('active'); document.getElementById('pay-bank').classList.remove('active');
+  if(method === 'Tiền mặt') { document.getElementById('pay-cash').classList.add('active'); document.getElementById('qr-section').style.display = 'none'; }
+  else { document.getElementById('pay-bank').classList.add('active'); document.getElementById('qr-section').style.display = 'block'; }
+}
+
+function submitOrder() {
+  if(cart.length === 0) return;
+  const addQty = cart.reduce((s, i) => s + i.qty, 0);
+  const calc = calculateFinalTotal();
+  const now = new Date(getVNDate());
+  const newId = `order_web_${uid()}`;
+  const effectiveOrderId = (isMergingOrder && activeOrderId) ? activeOrderId : newId;
+  let earnedTicket = false;
+  if(addQty >= 3) { addTicketToLedger('order', effectiveOrderId); earnedTicket = true; }
+  let usedVoucherId = null;
+  if(calc.voucherId !== 'none') {
+    usedVoucherId = calc.voucherId;
+    customer.vouchers = (customer.vouchers || []).map(v => { if(v.id === calc.voucherId) v.used = true; return v; });
+  }
+  if(usedVoucherId) {
+    if(!customer.usedVoucherLog) customer.usedVoucherLog = {};
+    customer.usedVoucherLog[effectiveOrderId] = usedVoucherId;
+  }
+  saveCustomerDataToFirebase();
+  if(isMergingOrder && activeOrderId) {
+    db.ref('meoxam_data/orders').once('value').then(snap => {
+      let orders = snap.val() || [];
+      let idx = orders.findIndex(o => o.id === activeOrderId);
+      if(idx > -1) {
+        orders[idx].items = (orders[idx].items || []).concat(cart);
+        orders[idx].totalQty += addQty;
+        orders[idx].totalPrice += calc.finalTotal;
+        orders[idx].generalNote = (orders[idx].generalNote || '') + " | (Vừa gọi thêm món)";
+        return db.ref('meoxam_data/orders').set(orders);
+      }
+    }).then(() => { applyAutomaticVIPTheme(); finalizeSubmit("ĐÃ GỘP MÓN THÀNH CÔNG!", earnedTicket); })
+    .catch(err => alert("Lỗi gộp đơn: " + err.message));
+  } else {
+    const tableInfo = `App: ${customer.name} - ${customer.deliveryPhone} - ${customer.address}`;
+    const orderData = {
+      id: newId, customerPhone: customer.loginPhone, status: 'Đang xử lý', table: tableInfo,
+      paymentMethod: paymentMethod, generalNote: "Khách đặt từ Web",
+      items: cart, totalQty: addQty, totalPrice: calc.finalTotal,
+      appliedVoucher: calc.appliedVoucherName, staffName: "Khách Tự Order",
+      dateIso: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
+      time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} — ${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`
+    };
+    db.ref('meoxam_data/orders').once('value').then(snap => {
+      let orders = snap.val() || []; orders.unshift(orderData);
+      return db.ref('meoxam_data/orders').set(orders);
+    }).then(() => {
+      activeOrderId = newId;
+      listenToChat(newId);
+      applyAutomaticVIPTheme();
+      finalizeSubmit("ĐẶT HÀNG THÀNH CÔNG!", earnedTicket);
+    }).catch(err => alert("Lỗi gửi đơn: " + err.message));
+  }
+}
+
+function finalizeSubmit(title, earnedTicket) {
+  let extraMsg = earnedTicket ? "\n🎁 Chúc mừng bạn nhận thêm 1 Ticket vì đơn hàng có từ 3 món nước trở lên!" : "";
+  document.getElementById('success-title').textContent = title;
+  document.getElementById('success-name').textContent = customer.name + extraMsg;
+  isMergingOrder = false;
+  document.getElementById('alert-merge-order').style.display = 'none';
+  document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN ĐÚNG';
+  document.getElementById('payment-subtitle').textContent = 'Chọn hình thức thanh toán cho đơn hàng';
+  document.getElementById('payment-options-container').style.display = 'block';
+  showScreen('step5-success');
+  cart = []; updateBottomCartBar();
+}
+
+let chatUnreadCount = 0, isChatOpen = false;
+let chatListenerRef = null;
+function listenToChat(orderId) {
+  if(chatListenerRef) chatListenerRef.off();
+  chatListenerRef = db.ref(`meoxam_data/chats/${orderId}`);
+  chatListenerRef.on('value', snap => {
+    const msgs = snap.val(); if(!msgs) return;
+    let html = '', hasNew = false;
+    const keys = Object.keys(msgs);
+    keys.forEach((key, index) => {
+      const m = msgs[key]; const isMe = m.sender === 'customer';
+      if(!isMe && !isChatOpen && index === keys.length - 1) hasNew = true;
+      html += `<div class="msg-bubble ${isMe ? 'msg-customer' : 'msg-staff'}">${!isMe ? '<b>Quán:</b> ' : ''}${escapeHtml(m.text)}<div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:${isMe?'right':'left'};">${m.time}</div></div>`;
+    });
+    const body = document.getElementById('chat-messages');
+    body.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--muted); margin:10px 0;">Nhắn tin cho quán nếu cần hỗ trợ thêm nhé!</div>` + html;
+    body.scrollTop = body.scrollHeight;
+    if(hasNew && !isChatOpen) {
+      chatUnreadCount++;
+      const badge = document.getElementById('chat-unread-badge');
+      badge.style.display = 'flex'; badge.textContent = chatUnreadCount;
+    }
+  });
+}
+function toggleChatWindow() {
+  isChatOpen = !isChatOpen;
+  document.getElementById('chat-window').style.display = isChatOpen ? 'flex' : 'none';
+  if(isChatOpen) { chatUnreadCount = 0; document.getElementById('chat-unread-badge').style.display = 'none'; const cb = document.getElementById('chat-messages'); cb.scrollTop = cb.scrollHeight; }
+}
+function sendChatMessage() {
+  const inp = document.getElementById('chat-input-msg'); const text = inp.value.trim();
+  if(!text || !activeOrderId) return;
+  const now = new Date(getVNDate());
+  db.ref(`meoxam_data/chats/${activeOrderId}`).push({ sender: 'customer', text: text, time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`, timestamp: now.getTime() })
+  .catch(err => console.error("Lỗi gửi tin nhắn:", err));
+  inp.value = '';
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+</body>
+</html>
