@@ -937,17 +937,28 @@ function fetchCustomerData(phone, callback) {
   db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
     const data = snap.val() || {};
     const now = Date.now();
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+    let ledger = migrateLegacyTicketsToLedger(data);
     let nextFree = data.nextFreeTicketTime || 0;
-    if (!nextFree || nextFree < now) { nextFree = now + (3 * 24 * 60 * 60 * 1000); }
+    if (!nextFree) {
+      nextFree = now + THREE_DAYS_MS;
+    } else if (nextFree <= now) {
+      let missedCycles = Math.floor((now - nextFree) / THREE_DAYS_MS) + 1;
+      missedCycles = Math.min(missedCycles, 5);
+      for (let i = 0; i < missedCycles; i++) {
+        ledger.push({ id: uid(), source: 'free', sourceOrderId: null, status: 'unused', voucherId: null });
+      }
+      nextFree = now + THREE_DAYS_MS;
+    }
     customer = {
       loginPhone: phone, deliveryPhone: data.deliveryPhone || phone,
       name: data.name || '', address: data.address || '', pin: data.pin || '',
-      ticketLedger: migrateLegacyTicketsToLedger(data),
+      ticketLedger: ledger,
       vouchers: data.vouchers || [], lastLoginTime: now, nextFreeTicketTime: nextFree,
       usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || []
     };
     syncTicketCount();
-    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime, nextFreeTicketTime: customer.nextFreeTicketTime }).catch(err => console.error(err));
+    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime, nextFreeTicketTime: customer.nextFreeTicketTime, ticketLedger: customer.ticketLedger, tickets: customer.tickets }).catch(err => console.error(err));
     localStorage.setItem('mx_active_session', JSON.stringify(customer));
     startCustomerRealtimeListener();
     startOnlinePresence();
