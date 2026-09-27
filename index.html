@@ -937,28 +937,18 @@ function fetchCustomerData(phone, callback) {
   db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
     const data = snap.val() || {};
     const now = Date.now();
-    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
-    let ledger = migrateLegacyTicketsToLedger(data);
     let nextFree = data.nextFreeTicketTime || 0;
-    if (!nextFree) {
-      nextFree = now + THREE_DAYS_MS;
-    } else if (nextFree <= now) {
-      let missedCycles = Math.floor((now - nextFree) / THREE_DAYS_MS) + 1;
-      missedCycles = Math.min(missedCycles, 5);
-      for (let i = 0; i < missedCycles; i++) {
-        ledger.push({ id: uid(), source: 'free', sourceOrderId: null, status: 'unused', voucherId: null });
-      }
-      nextFree = now + THREE_DAYS_MS;
-    }
+    if (!nextFree || nextFree < now) { nextFree = now + (3 * 24 * 60 * 60 * 1000); }
     customer = {
       loginPhone: phone, deliveryPhone: data.deliveryPhone || phone,
-      name: data.name || '', address: data.address || '', pin: data.pin || '',
-      ticketLedger: ledger,
+      name: data.realName || data.name || '',        // ← đọc cả 2
+      address: data.address || '', pin: data.pin || '',
+      ticketLedger: migrateLegacyTicketsToLedger(data),
       vouchers: data.vouchers || [], lastLoginTime: now, nextFreeTicketTime: nextFree,
       usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || []
     };
     syncTicketCount();
-    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime, nextFreeTicketTime: customer.nextFreeTicketTime, ticketLedger: customer.ticketLedger, tickets: customer.tickets }).catch(err => console.error(err));
+    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime, nextFreeTicketTime: customer.nextFreeTicketTime }).catch(err => console.error(err));
     localStorage.setItem('mx_active_session', JSON.stringify(customer));
     startCustomerRealtimeListener();
     startOnlinePresence();
@@ -1037,7 +1027,9 @@ function doRegister() {
     const now = Date.now();
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
     const newCustomer = { 
-      name: name, deliveryPhone: phone, address: address, pin: pin, tickets: 2, 
+        name: name, 
+      realName: name,                                
+      deliveryPhone: phone, address: address, pin: pin, tickets: 2, 
       ticketLedger: [
         { id: uid(), source: 'signup', sourceOrderId: null, status: 'unused', voucherId: null },
         { id: uid(), source: 'signup', sourceOrderId: null, status: 'unused', voucherId: null }
@@ -1097,7 +1089,12 @@ function saveEditProfile() {
     if(newPin !== confirmPin) return alert("Mã PIN xác nhận không khớp!");
     finalPin = newPin;
   }
-  const updatedData = { name: name, deliveryPhone: dPhone, address: address, pin: finalPin };
+  const updatedData = {name: name, 
+    realName: name,                                  
+    deliveryPhone: dPhone, 
+    address: address, 
+    pin: finalPin 
+  };
   db.ref(`meoxam_data/customers/${customer.loginPhone}`).update(updatedData).then(() => {
     alert("Cập nhật thông tin thành công!");
     customer.name = updatedData.name;
