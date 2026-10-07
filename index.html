@@ -1202,7 +1202,16 @@ function toggleWheelPanel(which) {
   document.getElementById('chip-hist').classList.toggle('active', which === 'hist' && willOpen);
 }
 
+/* Đếm khách bấm "VÀO ĐẶT MÓN": mỗi lần bấm = 1 khách, cộng theo ngày (giờ VN) */
+function trackMenuView() {
+  try {
+    const key = new Date(Date.now() + 7*3600*1000).toISOString().slice(0,10);
+    db.ref('meoxam_data/menuViews/' + key).transaction(c => (c || 0) + 1).catch(()=>{});
+  } catch(e) {}
+}
+
 function enterGuestMode() {
+  trackMenuView();
   isGuest = true;
   if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   customer = { loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', tickets: 0, ticketLedger: [], vouchers: [], lastLoginTime: 0, nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] };
