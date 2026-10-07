@@ -68,11 +68,11 @@
   .ticket-badge-wrapper { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
   .ticket-badge { background: #fff; color: var(--bad); padding: 5px 14px; border-radius: 20px; font-weight: 900; font-size: 12px; border: 1.5px solid var(--line); display: inline-block; }
   .timer-badge { background: rgba(0,0,0,0.3); color: #fff; padding: 5px 14px; border-radius: 20px; font-weight: 800; font-size: 11.5px; border: 1.5px solid rgba(255,255,255,0.4); display: inline-block; }
-  .wheel-container { position: relative; width: 280px; height: 280px; margin: 0 auto 16px auto; }
-  .wheel-pin { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 26px solid var(--bad); z-index: 25; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+  .wheel-container { position: relative; width: min(300px, 76vw); height: min(300px, 76vw); margin: 20px auto 12px auto; }
+  .wheel-pin { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid var(--bad); border-bottom: 0; z-index: 25; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45)); }
   .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--line); position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
-  .wheel-sector { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-start; padding-top: 25px; font-size: 10px; font-weight: 900; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.9); pointer-events: none; }
-  .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; background: var(--card); border: 3px solid var(--line); border-radius: 50%; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  .wheel-sector { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-start; padding-top: 25px; font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.9); pointer-events: none; }
+  .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 78px; height: 78px; background: var(--card); border: 4px solid var(--line); border-radius: 50%; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 42px; line-height: 1; font-weight: 900; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; animation: catPulse 1.8s infinite; }
   .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
   .category-scroll::-webkit-scrollbar { display: none; }
   .cat-chip { flex: 0 0 auto; border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 8px 20px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; }
@@ -368,6 +368,62 @@
     box-shadow:0 6px 22px rgba(184,147,90,.30), inset 0 1px 0 rgba(255,255,255,.4); }
   .priority-banner .pb-1{ font-size:15px; font-weight:900; letter-spacing:2.5px; }
   .priority-banner .pb-2{ font-size:11.5px; font-weight:700; opacity:.78; margin-top:3px; letter-spacing:.3px; }
+
+  /* ===== Vòng quay gọn + chạm mèo để quay ===== */
+  @keyframes catPulse { 0%{box-shadow:0 0 0 0 rgba(142,68,173,.5);} 70%{box-shadow:0 0 0 16px rgba(142,68,173,0);} 100%{box-shadow:0 0 0 0 rgba(142,68,173,0);} }
+  .wheel-center:active { transform: translate(-50%,-50%) scale(.92); }
+  .wheel-center.disabled { animation: none; opacity: .65; pointer-events: none; }
+  .wheel-info { background:#fff9f0; border:2px solid var(--accent); border-radius:16px; padding:8px 12px; margin-bottom:10px; }
+  .wheel-info .wi-ticket { font-size:13px; font-weight:800; }
+  .wheel-info .wi-result { font-size:14px; font-weight:900; color:var(--good); min-height:20px; margin-top:2px; }
+  .wheel-chips { display:flex; gap:8px; }
+  .wheel-chip { flex:1; font-family:inherit; font-weight:800; font-size:12.5px; padding:10px 6px; border-radius:14px; border:1.5px solid var(--line); background:var(--soft); color:var(--ink); cursor:pointer; }
+  .wheel-chip.active { border-color:var(--purple); color:var(--purple); background:#f6effa; }
+  .wheel-chip.close { flex:0 0 auto; padding:10px 16px; }
+  .wheel-panel { display:none; text-align:left; margin-top:10px; background:#fdfbf7; border:1.5px dashed var(--line); border-radius:14px; padding:10px 12px; font-size:12.5px; color:var(--muted); max-height:150px; overflow-y:auto; }
+  body.vip-mode .wheel-info { background:rgba(212,180,131,.08); border-color:rgba(212,180,131,.4); }
+  body.vip-mode .wheel-chip { background:rgba(212,180,131,.10); border-color:rgba(212,180,131,.4); color:#e6cf9f; }
+  body.vip-mode .wheel-chip.active { background:rgba(212,180,131,.22); }
+  body.vip-mode .wheel-panel { background:rgba(255,255,255,.04); border-color:rgba(212,180,131,.3); color:#d8cdb6; }
+  /* ===== Thanh vòng quay thu gọn ở menu ===== */
+  .lucky-mini { display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--soft); border:1.5px solid var(--line); border-radius:16px; padding:9px 12px; margin-bottom:12px; cursor:pointer; color:var(--ink); }
+  .lucky-mini .lm-title { font-weight:900; font-size:13px; display:block; }
+  .lucky-mini .lm-sub { font-weight:700; font-size:11px; color:var(--muted); display:block; margin-top:1px; }
+  .lucky-mini .ticket-badge { padding:4px 10px; font-size:12px; white-space:nowrap; }
+  .lucky-mini.lucky-guest { background:transparent; border-style:dashed; font-size:12px; font-weight:700; color:var(--muted); padding:8px 12px; }
+  .lucky-mini .lm-arrow { font-size:18px; font-weight:900; line-height:1; }
+  body.vip-mode .lucky-mini { background:rgba(212,180,131,.08); border-color:rgba(212,180,131,.35); color:#e6cf9f; }
+  body.vip-mode .lucky-mini .lm-sub { color:#bfae8a; }
+  /* ===== Đăng nhập: nút Vào đặt món + form giao hàng khách lẻ ===== */
+  .auth-or { display:flex; align-items:center; gap:10px; margin:18px 0 12px; color:var(--muted); font-size:12px; font-weight:800; }
+  .auth-or::before, .auth-or::after { content:''; flex:1; height:1.5px; background:var(--line); opacity:.35; }
+  .btn-guest { width:100%; display:block; font-family:inherit; border:2px solid #d35400; background:linear-gradient(135deg,#ff9f43,#ee5a24); color:#fff; border-radius:20px; padding:16px 14px; cursor:pointer; text-align:center; box-shadow:0 4px 0 #b13e0c, 0 8px 18px rgba(238,90,36,.30); transition:transform .08s, box-shadow .08s; }
+  .btn-guest:active { transform:translateY(3px); box-shadow:0 1px 0 #b13e0c; }
+  .btn-guest .bg-main { display:block; font-size:19px; font-weight:900; letter-spacing:.3px; }
+  .btn-guest .bg-sub { display:block; font-size:11.5px; font-weight:700; opacity:.92; margin-top:3px; }
+  .guest-info-box { background:#fff9f0; border:2px dashed var(--accent); border-radius:18px; padding:14px; margin-bottom:16px; }
+  .guest-info-box .input-group { margin-bottom:10px; }
+  .guest-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  body.vip-mode .guest-info-box { background:rgba(212,180,131,.06); border-color:rgba(212,180,131,.4); }
+
+  /* ===== Biển hiệu Las Vegas: đèn 2 màu chạy quanh ô quay ===== */
+  .marquee { padding: 20px 16px 18px; }
+  .marquee::after { content:''; position:absolute; inset:4px; border-radius:20px; pointer-events:none;
+    background:
+      radial-gradient(circle at 7px 4px,#ffe600 3px,transparent 4.3px) 0 0/28px 8px repeat-x,
+      radial-gradient(circle at 21px 4px,#fff 3px,transparent 4.3px) 0 0/28px 8px repeat-x,
+      radial-gradient(circle at 7px 4px,#ffe600 3px,transparent 4.3px) 0 100%/28px 8px repeat-x,
+      radial-gradient(circle at 21px 4px,#fff 3px,transparent 4.3px) 0 100%/28px 8px repeat-x,
+      radial-gradient(circle at 4px 7px,#ffe600 3px,transparent 4.3px) 0 0/8px 28px repeat-y,
+      radial-gradient(circle at 4px 21px,#fff 3px,transparent 4.3px) 0 0/8px 28px repeat-y,
+      radial-gradient(circle at 4px 7px,#ffe600 3px,transparent 4.3px) 100% 0/8px 28px repeat-y,
+      radial-gradient(circle at 4px 21px,#fff 3px,transparent 4.3px) 100% 0/8px 28px repeat-y;
+    filter: drop-shadow(0 0 3px rgba(255,230,0,.9));
+    animation: marqueeRun 1.1s linear infinite; }
+  @keyframes marqueeRun {
+    from { background-position: 0 0, 0 0, 0 100%, 0 100%, 0 0, 0 0, 100% 0, 100% 0; }
+    to   { background-position: 28px 0, 28px 0, -28px 100%, -28px 100%, 0 28px, 0 28px, 100% -28px, 100% -28px; }
+  }
 </style>
 </head>
 <body>
@@ -395,7 +451,12 @@
     <div id="form-login">
       <div class="input-group"><label>Số điện thoại (Tài khoản) *</label><input type="tel" id="login-phone" placeholder="VD: 0987654321" maxlength="10"></div>
       <div class="input-group"><label>Mã PIN *</label><input type="password" id="login-pin" placeholder="Nhập mã PIN 4-6 số" maxlength="6"></div>
-      <button class="btn" style="margin-top:24px;" onclick="doLogin()">VÀO ĐẶT MÓN</button>
+      <button class="btn" style="margin-top:20px;" onclick="doLogin()">ĐĂNG NHẬP</button>
+      <div class="auth-or">hoặc</div>
+      <button class="btn-guest" onclick="enterGuestMode()">
+        <span class="bg-main">🧋 VÀO ĐẶT MÓN</span>
+        <span class="bg-sub">Không cần đăng nhập · Chỉ đặt món, không quay thưởng</span>
+      </button>
     </div>
     <div id="form-register" style="display:none;">
       <div class="input-group"><label>Số điện thoại (10 số) *</label><input type="tel" id="reg-phone" placeholder="VD: 0987654321" maxlength="10"></div>
@@ -408,13 +469,16 @@
   </div>
 
   <div class="screen" id="step2-menu">
-    <div class="lucky-banner" onclick="openWheelModal()">
+    <div class="lucky-banner marquee" id="lucky-member" onclick="openWheelModal()">
       <h3>🎡 VÒNG QUAY MAY MẮN 🎡</h3>
       <p>Quay ngay để săn Voucher giảm giá & Phần quà hấp dẫn từ quán!</p>
       <div class="ticket-badge-wrapper">
         <div class="ticket-badge" id="banner-ticket-count">🎫 Vé: 0 Ticket</div>
         <div class="timer-badge" id="banner-timer-text">⏳ Vé tiếp theo: --:--</div>
       </div>
+    </div>
+    <div class="lucky-mini lucky-guest" id="lucky-guest" style="display:none;" onclick="goRegisterFromGuest()">
+      <span>🎁 Đăng ký để nhận Voucher quay giảm giá</span><span class="lm-arrow">›</span>
     </div>
     <div id="vip-status-banner" class="priority-banner"><div class="pb-1">✦ KHÁCH HÀNG PRIORITY ✦</div><div class="pb-2">Cảm ơn bạn đã đồng hành cùng Tiệm Trà Mèo Xám (tổng chi tiêu trên 3 triệu)</div></div>
     <div id="alert-merge-order" style="display:none; background:#eaf4ed; border:2px dashed var(--good); border-radius:14px; padding:10px; margin-bottom:14px; text-align:center; font-size:13px; font-weight:800; color:var(--good);">Đang trong chế độ: GỌI THÊM MÓN VÀO ĐƠN HIỆN TẠI ➕</div>
@@ -426,7 +490,7 @@
     <h2>Giỏ hàng của bạn 🛒</h2>
     <p class="subtitle">Vuốt món sang trái để xóa 👈</p>
     <div class="cart-list" id="cart-list-ui"></div>
-    <div class="input-group" style="background:#fff9f0; border:2px dashed var(--accent); padding:12px; border-radius:16px; margin-bottom:16px;">
+    <div class="input-group" id="voucher-box" style="background:#fff9f0; border:2px dashed var(--accent); padding:12px; border-radius:16px; margin-bottom:16px;">
       <label style="color:var(--accent); font-weight:900;">🎟️ CHỌN VOUCHER ÁP DỤNG:</label>
       <select id="selected-voucher" onchange="onVoucherSelectChange()" style="margin-top:4px;"><option value="none">-- Không dùng voucher --</option></select>
     </div>
@@ -445,6 +509,14 @@
   <div class="screen" id="step4-payment">
     <h2>Thanh toán 💳</h2>
     <p class="subtitle" id="payment-subtitle">Chọn hình thức thanh toán cho đơn hàng</p>
+    <div class="guest-info-box" id="guest-info-box" style="display:none;">
+      <b style="display:block; margin-bottom:10px; color:var(--accent);">📍 Thông tin giao hàng</b>
+      <div class="guest-grid">
+        <div class="input-group"><label>Tên *</label><input type="text" id="guest-name" placeholder="VD: Ngọc Ánh"></div>
+        <div class="input-group"><label>SĐT *</label><input type="tel" id="guest-phone" placeholder="0987654321" maxlength="10"></div>
+      </div>
+      <div class="input-group" style="margin-bottom:0;"><label>Địa chỉ *</label><textarea id="guest-address" rows="2" placeholder="Giao tận nơi hoặc Số bàn..."></textarea></div>
+    </div>
     <div id="payment-options-container">
       <div class="pay-box active" id="pay-cash" onclick="selectPayment('Tiền mặt')"><div class="pay-box-title">💵 Tiền mặt</div><div style="font-size:13px; color:var(--muted);">Thanh toán bằng tiền mặt khi nhận hàng</div></div>
       <div class="pay-box" id="pay-bank" onclick="selectPayment('Chuyển khoản')"><div class="pay-box-title">📱 Chuyển khoản QR</div><div style="font-size:13px; color:var(--muted);">Quét mã QR (Cần gửi ảnh bill cho nhân viên)</div></div>
@@ -460,7 +532,8 @@
       <h2 style="color:var(--good);" id="success-title">ĐẶT HÀNG THÀNH CÔNG!</h2>
       <p style="font-size:15px; font-weight:600; line-height:1.5;">Cảm ơn Quý khách <b id="success-name"></b> đã chọn Tiệm Trà Mèo Xám.</p>
       <p style="font-size:14px; color:var(--muted); margin-top:10px; background:#eaf4ed; padding:16px; border-radius:14px; border:2px dashed var(--good);">Tiệm Trà Mèo Xám cảm ơn vì luôn chọn tin tưởng quán, món nước của bạn sẽ được giao đến tay sớm nhất, xin trân trọng cảm ơn.</p>
-      <button class="btn outline" style="margin-top:20px;" onclick="openHistoryScreen()">Xem Lịch Sử Đơn</button>
+      <button class="btn outline" id="btn-success-history" style="margin-top:20px;" onclick="openHistoryScreen()">Xem Lịch Sử Đơn</button>
+      <button class="btn" id="btn-success-more" style="margin-top:20px; display:none;" onclick="showScreen('step2-menu')">🧋 Đặt thêm đơn mới</button>
     </div>
   </div>
 
@@ -503,30 +576,24 @@
 </div>
 
 <div class="modal-overlay" id="wheel-modal">
-  <div class="modal-card" style="text-align:center;">
-    <h3 style="color:var(--purple); margin-top:0; font-size:20px;">🎡 VÒNG QUAY MAY MẮN</h3>
-    <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Dùng Ticket để quay nhận voucher giảm giá từ quán!</p>
+  <div class="modal-card" style="text-align:center; padding:22px 18px 20px;">
+    <h3 style="color:var(--purple); margin:0; font-size:19px;">🎡 VÒNG QUAY MAY MẮN</h3>
     <div class="wheel-container">
       <div class="wheel-pin"></div>
       <div class="wheel" id="visual-wheel"></div>
-      <div class="wheel-center">😺</div>
+      <div class="wheel-center" id="wheel-center" onclick="spinWheel()" title="Chạm để quay">😺</div>
     </div>
-    <div style="background:#fff9f0; border:2px solid var(--accent); border-radius:16px; padding:12px; margin-bottom:12px;">
-      <div style="font-size:13px; font-weight:800; margin-bottom:4px;">Số vé: <span id="wheel-ticket-display" style="color:var(--bad); font-size:16px;">0</span> Ticket</div>
-      <div id="wheel-result-box" style="font-size:14px; font-weight:900; color:var(--good); min-height:22px;">Bấm quay để thử vận may!</div>
+    <div class="wheel-info">
+      <div class="wi-ticket">🎫 Số vé: <span id="wheel-ticket-display" style="color:var(--bad); font-size:16px; font-weight:900;">0</span> Ticket</div>
+      <div class="wi-result" id="wheel-result-box">Chạm vào chú mèo để quay!</div>
     </div>
-    <div style="background:var(--card); border:2px solid var(--purple); border-radius:16px; padding:12px; margin-bottom:12px; text-align:left;">
-      <b style="font-size:13px; color:var(--purple); display:block; margin-bottom:6px;">🎒 Túi Voucher của bạn:</b>
-      <div id="modal-voucher-bag-list" style="font-size:12px; color:var(--muted); max-height:80px; overflow-y:auto;">Chưa có voucher nào.</div>
+    <div class="wheel-chips">
+      <button class="wheel-chip" id="chip-bag" onclick="toggleWheelPanel('bag')">🎒 Voucher (<span id="bag-count">0</span>)</button>
+      <button class="wheel-chip" id="chip-hist" onclick="toggleWheelPanel('hist')">📜 Lịch sử</button>
+      <button class="wheel-chip close" onclick="document.getElementById('wheel-modal').style.display='none'">Đóng</button>
     </div>
-    <div style="background:#fdfbf7; border:2px dashed var(--line); border-radius:16px; padding:12px; margin-bottom:16px; text-align:left;">
-      <b style="font-size:13px; color:var(--ink); display:block; margin-bottom:6px;">📜 Lịch sử vòng quay của bạn:</b>
-      <div id="modal-spin-history" style="font-size:12px; color:var(--muted); max-height:90px; overflow-y:auto;">Chưa có lượt quay nào.</div>
-    </div>
-    <div style="display:flex; gap:12px;">
-      <button class="btn outline" onclick="document.getElementById('wheel-modal').style.display='none'">Đóng</button>
-      <button class="btn success" id="spin-btn" style="flex:2; background:var(--purple); border-color:var(--purple);" onclick="spinWheel()">QUAY NGAY (1 TICKET)</button>
-    </div>
+    <div class="wheel-panel" id="wheel-panel-bag"><div id="modal-voucher-bag-list">Chưa có voucher nào.</div></div>
+    <div class="wheel-panel" id="wheel-panel-hist"><div id="modal-spin-history">Chưa có lượt quay nào.</div></div>
   </div>
 </div>
 
@@ -584,6 +651,8 @@ let WHEEL_CONFIG = [];
 let PRODUCT_IMAGES = {};
 let SHOP_WHEEL_CONFIG = null;
 
+let isGuest = false;
+let isSpinning = false;
 let customer = { 
   loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', 
   tickets: 2, ticketLedger: [], vouchers: [], lastLoginTime: 0, 
@@ -859,55 +928,33 @@ function checkCanceledOrdersAndRevertRewards(oldList, newList) {
 
     if(!isCanceledOrDeleted) return;
 
-    let hasChanges = false;
-    let notificationMsg = `⚠️ THÔNG BÁO VỀ ĐƠN HÀNG ĐÃ HỦY:\n`;
-
-    const relatedTickets = customer.ticketLedger.filter(t => t.sourceOrderId === oldOrd.id);
-    relatedTickets.forEach(ticket => {
-      if(ticket.status === 'unused'){
-        customer.ticketLedger = customer.ticketLedger.filter(t => t.id !== ticket.id);
-        notificationMsg += `- Thu hồi 1 vé chưa sử dụng do đơn hàng bị hủy.\n`;
-        hasChanges = true;
-      } else if(ticket.status === 'used'){
-        if(ticket.voucherId){
-          // Gắn cờ revoked = true thay vì xóa, để Firebase không tải ngược lại.
-          const v = customer.vouchers.find(vv => vv.id === ticket.voucherId);
-          if(v && !v.revoked){
-            v.revoked = true;
-            v.revokedReason = "Thu hồi do hủy đơn";
-            v.revokedAt = Date.now();
-            notificationMsg += `- Voucher "${v.name}" đã bị thu hồi.\n`;
-            hasChanges = true;
+    let msg = '';
+    txCustomer(d => {
+      msg = `⚠️ THÔNG BÁO VỀ ĐƠN HÀNG ĐÃ HỦY:\n`;
+      let changed = false;
+      d.ticketLedger.filter(x => x.sourceOrderId === oldOrd.id).forEach(tk => {
+        if(tk.status === 'unused') {
+          d.ticketLedger = d.ticketLedger.filter(x => x.id !== tk.id);
+          msg += `- Thu hồi 1 vé chưa sử dụng do đơn hàng bị hủy.\n`;
+          changed = true;
+        } else if(tk.status === 'used') {
+          if(tk.voucherId) {
+            const v = d.vouchers.find(vv => vv.id === tk.voucherId);
+            if(v && !v.revoked) { v.revoked = true; v.revokedReason = "Thu hồi do hủy đơn"; v.revokedAt = Date.now(); msg += `- Voucher "${v.name}" đã bị thu hồi.\n`; changed = true; }
           }
+          const sh = d.spinHistory.find(s => s.ticketId === tk.id);
+          if(sh && !sh.revoked) { sh.revoked = true; sh.revokedReason = "Thu hồi do hủy đơn"; changed = true; }
         }
-        const sh = customer.spinHistory.find(s => s.ticketId === ticket.id);
-        if(sh && !sh.revoked){
-          sh.revoked = true;
-          sh.revokedReason = "Thu hồi do hủy đơn";
-          hasChanges = true;
-        }
+      });
+      if(!changed) return false;
+      if(oldOrd.appliedVoucher && oldOrd.appliedVoucher !== 'none') {
+        const vid = d.usedVoucherLog && d.usedVoucherLog[oldOrd.id];
+        const av = vid ? d.vouchers.find(v => v.id === vid) : d.vouchers.find(v => v.name === oldOrd.appliedVoucher && v.used);
+        if(av && av.used) msg += `- Voucher "${av.name}" đã áp dụng cho đơn này được tính là đã sử dụng và không được hoàn lại.\n`;
       }
-    });
-
-    if(oldOrd.appliedVoucher && oldOrd.appliedVoucher !== 'none'){
-      let appliedVoucherId = (customer.usedVoucherLog && customer.usedVoucherLog[oldOrd.id])
-        ? customer.usedVoucherLog[oldOrd.id] : null;
-      let appliedV = appliedVoucherId
-        ? customer.vouchers.find(v => v.id === appliedVoucherId)
-        : customer.vouchers.find(v => v.name === oldOrd.appliedVoucher && v.used);
-      
-      if(appliedV && appliedV.used){
-        notificationMsg += `- Voucher "${appliedV.name}" đã áp dụng cho đơn này được tính là đã sử dụng và không được hoàn lại.\n`;
-      }
-    }
-
-    syncTicketCount();
-
-    if(hasChanges){
-      saveCustomerDataToFirebase();
-      updateTicketUI();
-      setTimeout(() => { alert(notificationMsg); }, 300);
-    }
+    }).then(res => {
+      if(res.committed) setTimeout(() => { alert(msg); }, 300);
+    }).catch(e => console.error(e));
   });
 }
 
@@ -934,11 +981,11 @@ window.onload = () => {
 };
 
 function fetchCustomerData(phone, callback) {
+  isGuest = false;
   db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
     const data = snap.val() || {};
     const now = Date.now();
     let nextFree = data.nextFreeTicketTime || 0;
-    if (!nextFree || nextFree < now) { nextFree = now + (3 * 24 * 60 * 60 * 1000); }
     customer = {
       loginPhone: phone, deliveryPhone: data.deliveryPhone || phone,
       name: data.realName || data.name || '',        // ← đọc cả 2
@@ -948,7 +995,7 @@ function fetchCustomerData(phone, callback) {
       usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || []
     };
     syncTicketCount();
-    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime, nextFreeTicketTime: customer.nextFreeTicketTime }).catch(err => console.error(err));
+    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime }).catch(err => console.error(err));
     localStorage.setItem('mx_active_session', JSON.stringify(customer));
     startCustomerRealtimeListener();
     startOnlinePresence();
@@ -968,11 +1015,8 @@ function startTicketCountdownTimer() {
   const updateTimer = () => {
     const now = Date.now();
     const timerEl = document.getElementById('banner-timer-text');
-    if (customer.nextFreeTicketTime <= now) {
-      addTicketToLedger('free', null);
-      customer.nextFreeTicketTime = now + (3 * 24 * 60 * 60 * 1000);
-      saveCustomerDataToFirebase();
-      updateTicketUI();
+    if (!customer.nextFreeTicketTime || customer.nextFreeTicketTime <= now) {
+      grantFreeTicketsIfDue();
     }
     const remaining = Math.max(0, customer.nextFreeTicketTime - now);
     const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
@@ -1115,6 +1159,8 @@ function updateTicketUI() {
   if(elWheel) elWheel.textContent = customer.tickets || 0;
   const elProf = document.getElementById('prof-ticket-count');
   if(elProf) elProf.textContent = customer.tickets || 0;
+  const bagCountEl = document.getElementById('bag-count');
+  if(bagCountEl) bagCountEl.textContent = (customer.vouchers || []).filter(v => !v.used && !v.revoked).length;
   
   const modalBag = document.getElementById('modal-voucher-bag-list');
   // Lọc chuẩn xác: Loại bỏ những voucher ĐÃ DÙNG hoặc ĐÃ THU HỒI
@@ -1136,9 +1182,59 @@ function updateTicketUI() {
 }
 
 function openWheelModal() {
+  if(isGuest || !customer.loginPhone) { goRegisterFromGuest(); return; }
   updateTicketUI();
-  document.getElementById('wheel-result-box').textContent = "Bấm quay để thử vận may!";
+  if(!isSpinning) document.getElementById('wheel-result-box').textContent = "Chạm vào chú mèo để quay!";
+  document.getElementById('wheel-panel-bag').style.display = 'none';
+  document.getElementById('wheel-panel-hist').style.display = 'none';
+  document.getElementById('chip-bag').classList.remove('active');
+  document.getElementById('chip-hist').classList.remove('active');
   document.getElementById('wheel-modal').style.display = 'flex';
+}
+
+function toggleWheelPanel(which) {
+  const bag = document.getElementById('wheel-panel-bag'), hist = document.getElementById('wheel-panel-hist');
+  const target = which === 'bag' ? bag : hist, other = which === 'bag' ? hist : bag;
+  const willOpen = target.style.display !== 'block';
+  target.style.display = willOpen ? 'block' : 'none';
+  other.style.display = 'none';
+  document.getElementById('chip-bag').classList.toggle('active', which === 'bag' && willOpen);
+  document.getElementById('chip-hist').classList.toggle('active', which === 'hist' && willOpen);
+}
+
+function enterGuestMode() {
+  isGuest = true;
+  if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  customer = { loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', tickets: 0, ticketLedger: [], vouchers: [], lastLoginTime: 0, nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] };
+  try {
+    const g = JSON.parse(localStorage.getItem('mx_guest_info') || 'null');
+    if(g) {
+      document.getElementById('guest-name').value = g.name || '';
+      document.getElementById('guest-phone').value = g.phone || '';
+      document.getElementById('guest-address').value = g.address || '';
+    }
+  } catch(e) {}
+  document.body.classList.remove('vip-mode');
+  document.documentElement.classList.remove('priority-html');
+  updateHeaderCustomerName();
+  renderCategories();
+  renderMenu();
+  showScreen('step2-menu');
+}
+
+function goRegisterFromGuest() {
+  isGuest = false;
+  document.getElementById('wheel-modal').style.display = 'none';
+  switchAuthTab('register');
+  showScreen('step1-info');
+}
+
+function applyGuestUI() {
+  const set = (id, show) => { const el = document.getElementById(id); if(el) el.style.display = show ? '' : 'none'; };
+  set('lucky-member', !isGuest);
+  set('lucky-guest', isGuest);
+  set('voucher-box', !isGuest);
+  set('guest-info-box', isGuest);
 }
 
 let currentWheelRotation = 0;
@@ -1154,73 +1250,111 @@ function pickWeightedIndex() {
   return 0;
 }
 
-function spinWheel() {
-  if((customer.tickets || 0) <= 0) { alert("Bạn đã hết Ticket! Hãy đặt đơn có từ 3 món nước trở lên hoặc chờ nhận vé định kỳ nhé."); return; }
-  const usedTicketEntry = useOneTicketFromLedger();
-  if(!usedTicketEntry) { alert("Bạn đã hết Ticket!"); return; }
-  saveCustomerDataToFirebase();
-  updateTicketUI();
-  document.getElementById('spin-btn').disabled = true;
-  document.getElementById('wheel-result-box').textContent = "🎡 Đang quay...";
-  const totalSectors = WHEEL_CONFIG.length;
-  const degPerSector = 360 / totalSectors;
-  const winningIndex = pickWeightedIndex();
-  const targetSectorCenterAngle = (winningIndex * degPerSector) + (degPerSector / 2);
-  const extraRounds = 360 * 5;
-  const finalDegree = extraRounds + (360 - targetSectorCenterAngle);
-  currentWheelRotation += (finalDegree - (currentWheelRotation % 360));
-  const wheelEl = document.getElementById('visual-wheel');
-  wheelEl.style.transform = `rotate(${currentWheelRotation}deg)`;
-  setTimeout(() => {
-    document.getElementById('spin-btn').disabled = false;
-    const wonItem = WHEEL_CONFIG[winningIndex];
-    const nowStr = new Date(getVNDate()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-    if(!customer.spinHistory) customer.spinHistory = [];
-    if (!wonItem.name || wonItem.name.toLowerCase().includes("chúc may mắn") || Number(wonItem.discount) === 0) {
-      document.getElementById('wheel-result-box').innerHTML = `😢 <b style="color:var(--bad);">Rất tiếc! Chúc bạn may mắn lần sau.</b>`;
-      customer.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: usedTicketEntry.id, revoked: false });
-    } else {
-      document.getElementById('wheel-result-box').innerHTML = `🎉 Trúng: <b style="color:var(--good);">${wonItem.name}</b>`;
-      if(!customer.vouchers) customer.vouchers = [];
-      let newV = { id: uid(), name: wonItem.name, used: false, revoked: false };
-      customer.vouchers.push(newV);
-      usedTicketEntry.voucherId = newV.id;
-      customer.spinHistory.push({ time: nowStr, result: wonItem.name, ticketId: usedTicketEntry.id, revoked: false });
+const FREE_TICKET_MS = 3 * 24 * 60 * 60 * 1000;
+
+// Mọi thay đổi vé/voucher đều chạy bằng transaction trên dữ liệu THẬT của Firebase,
+// không ghi đè cả mảng từ bản lưu cũ trên máy khách -> không còn lệch với App chính.
+function txCustomer(mutator) {
+  const phone = customer.loginPhone;
+  if(!phone) return Promise.resolve({ committed: false });
+  return db.ref(`meoxam_data/customers/${phone}`).transaction(cur => {
+    const d = Object.assign({}, cur || {});
+    d.ticketLedger = Array.isArray(d.ticketLedger) ? d.ticketLedger.map(x => Object.assign({}, x)) : migrateLegacyTicketsToLedger(d);
+    d.vouchers = Array.isArray(d.vouchers) ? d.vouchers.map(x => Object.assign({}, x)) : [];
+    d.spinHistory = Array.isArray(d.spinHistory) ? d.spinHistory.map(x => Object.assign({}, x)) : [];
+    if(d.usedVoucherLog) d.usedVoucherLog = Object.assign({}, d.usedVoucherLog);
+    if(mutator(d) === false) return;
+    d.tickets = d.ticketLedger.filter(x => x.status === 'unused').length;
+    return d;
+  }).then(res => {
+    if(res.committed && res.snapshot && res.snapshot.val()) {
+      const v = res.snapshot.val();
+      customer.ticketLedger = v.ticketLedger || [];
+      customer.vouchers = v.vouchers || [];
+      customer.spinHistory = v.spinHistory || [];
+      customer.usedVoucherLog = v.usedVoucherLog || {};
+      if(v.nextFreeTicketTime) customer.nextFreeTicketTime = v.nextFreeTicketTime;
+      syncTicketCount();
+      try { localStorage.setItem('mx_active_session', JSON.stringify(customer)); } catch(e) {}
+      updateTicketUI();
     }
-    saveCustomerDataToFirebase();
-    updateTicketUI();
-  }, 4000);
+    return res;
+  });
 }
 
+function spinWheel() {
+  if(isSpinning) return;
+  if(isGuest || !customer.loginPhone) { goRegisterFromGuest(); return; }
+  const resultBox = document.getElementById('wheel-result-box');
+  if((customer.tickets || 0) <= 0) { resultBox.innerHTML = '<span style="color:var(--bad);">🎫 Hết vé rồi! Đặt đơn từ 3 món nước hoặc chờ vé định kỳ nhé.</span>'; return; }
+  isSpinning = true;
+  document.getElementById('wheel-center').classList.add('disabled');
+  resultBox.textContent = "🎡 Đang quay...";
+  const winningIndex = pickWeightedIndex();
+  const wonItem = WHEEL_CONFIG[winningIndex];
+  const nowStr = new Date(getVNDate()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+  const isLose = !wonItem.name || wonItem.name.toLowerCase().includes("chúc may mắn") || Number(wonItem.discount) === 0;
+  txCustomer(d => {
+    const tk = d.ticketLedger.find(x => x.status === 'unused');
+    if(!tk) return false;
+    tk.status = 'used';
+    if(!isLose) {
+      const nv = { id: uid(), name: wonItem.name, used: false, revoked: false };
+      d.vouchers.push(nv);
+      tk.voucherId = nv.id;
+    }
+    d.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: tk.id, revoked: false });
+  }).then(res => {
+    if(!res.committed) {
+      isSpinning = false;
+      document.getElementById('wheel-center').classList.remove('disabled');
+      resultBox.innerHTML = '<span style="color:var(--bad);">🎫 Hết vé rồi!</span>';
+      return;
+    }
+    const totalSectors = WHEEL_CONFIG.length;
+    const degPerSector = 360 / totalSectors;
+    const targetSectorCenterAngle = (winningIndex * degPerSector) + (degPerSector / 2);
+    const finalDegree = 360 * 5 + (360 - targetSectorCenterAngle);
+    currentWheelRotation += (finalDegree - (currentWheelRotation % 360));
+    document.getElementById('visual-wheel').style.transform = `rotate(${currentWheelRotation}deg)`;
+    setTimeout(() => {
+      isSpinning = false;
+      document.getElementById('wheel-center').classList.remove('disabled');
+      resultBox.innerHTML = isLose
+        ? `😢 <b style="color:var(--bad);">Rất tiếc! Chúc bạn may mắn lần sau.</b>`
+        : `🎉 Trúng: <b style="color:var(--good);">${wonItem.name}</b>`;
+      updateTicketUI();
+    }, 4000);
+  }).catch(err => {
+    isSpinning = false;
+    document.getElementById('wheel-center').classList.remove('disabled');
+    resultBox.textContent = "Lỗi kết nối, thử lại nhé!";
+    console.error(err);
+  });
+}
+
+// Chỉ ghi thời điểm đăng nhập; vé/voucher KHÔNG còn ghi đè từ máy khách.
 function saveCustomerDataToFirebase() {
   const phone = customer.loginPhone;
   if (!phone) return;
-  const ref = db.ref(`meoxam_data/customers/${phone}`);
-  ref.once('value').then(snap => {
-    const remote = snap.val() || {};
-    const remoteLedger = Array.isArray(remote.ticketLedger) ? remote.ticketLedger : [];
-    const localIds = new Set((customer.ticketLedger || []).map(t => t.id));
-    const missingLedger = remoteLedger.filter(t => !localIds.has(t.id));
-    customer.ticketLedger = (customer.ticketLedger || []).concat(missingLedger);
-    syncTicketCount();
+  db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime || Date.now() }).catch(err => console.error("Lỗi lưu dữ liệu:", err));
+  try { localStorage.setItem('mx_active_session', JSON.stringify(customer)); } catch(e) {}
+}
 
-    const remoteVouchers = Array.isArray(remote.vouchers) ? remote.vouchers : [];
-    const localVIds = new Set((customer.vouchers || []).map(v => v.id));
-    const missingVouchers = remoteVouchers.filter(v => !localVIds.has(v.id));
-    customer.vouchers = (customer.vouchers || []).concat(missingVouchers);
-
-    return ref.update({
-      tickets: customer.tickets, ticketLedger: customer.ticketLedger,
-      vouchers: customer.vouchers, lastLoginTime: customer.lastLoginTime,
-      nextFreeTicketTime: customer.nextFreeTicketTime,
-      usedVoucherLog: customer.usedVoucherLog, spinHistory: customer.spinHistory
-    });
-  }).then(() => {
-    localStorage.setItem('mx_active_session', JSON.stringify(customer));
-    updateTicketUI();
-  }).catch(err => {
-    console.error("Lỗi lưu dữ liệu:", err);
-  });
+let grantingFreeTicket = false;
+function grantFreeTicketsIfDue() {
+  if(grantingFreeTicket || !customer.loginPhone) return;
+  grantingFreeTicket = true;
+  txCustomer(d => {
+    const now = Date.now();
+    const nf = d.nextFreeTicketTime || 0;
+    if(!nf) { d.nextFreeTicketTime = now + FREE_TICKET_MS; return; }
+    if(nf > now) return false;
+    const missed = Math.floor((now - nf) / FREE_TICKET_MS) + 1;
+    const give = Math.min(5, missed);
+    for(let i = 0; i < give; i++) d.ticketLedger.push({ id: uid(), source: 'free', sourceOrderId: null, status: 'unused', voucherId: null });
+    d.nextFreeTicketTime = nf + missed * FREE_TICKET_MS;
+  }).catch(e => console.error(e)).then(() => { grantingFreeTicket = false; });
 }
 
 function fmt(n) { return (n||0).toLocaleString('vi-VN'); }
@@ -1235,8 +1369,9 @@ function showScreen(id) {
   const btnHistory = document.getElementById('btn-history-icon');
   const btnWheel = document.getElementById('btn-wheel-icon');
   if (id === 'step2-menu' && cart.length > 0) { bottomBar.classList.add('visible'); } else { bottomBar.classList.remove('visible'); }
-  if (id === 'step1-info' || id === 'step5-success') { btnProfile.style.display = 'none'; btnHistory.style.display = 'none'; btnWheel.style.display = 'none'; }
+  if (id === 'step1-info' || id === 'step5-success' || isGuest) { btnProfile.style.display = 'none'; btnHistory.style.display = 'none'; btnWheel.style.display = 'none'; }
   else { btnProfile.style.display = 'flex'; btnHistory.style.display = 'flex'; btnWheel.style.display = 'flex'; }
+  applyGuestUI();
 }
 
 function goToMenuIfNeeded() {
@@ -1575,24 +1710,26 @@ function selectPayment(method) {
 
 function submitOrder() {
   if(cart.length === 0) return;
+  let guestInfo = null;
+  if(isGuest) {
+    const gName = document.getElementById('guest-name').value.trim();
+    const gPhone = document.getElementById('guest-phone').value.trim();
+    const gAddr = document.getElementById('guest-address').value.trim();
+    if(!gName) { alert("Vui lòng nhập Tên của bạn!"); document.getElementById('guest-name').focus(); return; }
+    if(!/^\d{10}$/.test(gPhone)) { alert("Số điện thoại phải gồm đúng 10 chữ số!"); document.getElementById('guest-phone').focus(); return; }
+    if(!gAddr) { alert("Vui lòng nhập Địa chỉ giao hàng!"); document.getElementById('guest-address').focus(); return; }
+    guestInfo = { name: gName, phone: gPhone, address: gAddr };
+    try { localStorage.setItem('mx_guest_info', JSON.stringify(guestInfo)); } catch(e) {}
+  }
   const addQty = cart.reduce((s, i) => s + i.qty, 0);
   const calc = calculateFinalTotal();
   const now = new Date(getVNDate());
   const newId = `order_web_${uid()}`;
   const effectiveOrderId = (isMergingOrder && activeOrderId) ? activeOrderId : newId;
-  let earnedTicket = false;
-  if(addQty >= 3) { addTicketToLedger('order', effectiveOrderId); earnedTicket = true; }
-  let usedVoucherId = null;
-  if(calc.voucherId !== 'none') {
-    usedVoucherId = calc.voucherId;
-    customer.vouchers = (customer.vouchers || []).map(v => { if(v.id === calc.voucherId) v.used = true; return v; });
-  }
-  if(usedVoucherId) {
-    if(!customer.usedVoucherLog) customer.usedVoucherLog = {};
-    customer.usedVoucherLog[effectiveOrderId] = usedVoucherId;
-  }
-  saveCustomerDataToFirebase();
-  if(isMergingOrder && activeOrderId) {
+  const earnedTicket = (addQty >= 3 && !isGuest);
+  const needTx = !isGuest && (earnedTicket || calc.voucherId !== 'none');
+  const doSend = () => {
+  if(isMergingOrder && activeOrderId && !isGuest) {
     db.ref('meoxam_data/orders').once('value').then(snap => {
       let orders = snap.val() || [];
       let idx = orders.findIndex(o => o.id === activeOrderId);
@@ -1606,31 +1743,54 @@ function submitOrder() {
     }).then(() => { applyAutomaticVIPTheme(); finalizeSubmit("ĐÃ GỘP MÓN THÀNH CÔNG!", earnedTicket); })
     .catch(err => alert("Lỗi gộp đơn: " + err.message));
   } else {
-    const tableInfo = `App: ${customer.name} - ${customer.deliveryPhone} - ${customer.address}`;
+    const tableInfo = isGuest
+      ? `Khách lẻ: ${guestInfo.name} - ${guestInfo.phone} - ${guestInfo.address}`
+      : `App: ${customer.name} - ${customer.deliveryPhone} - ${customer.address}`;
     const orderData = {
-      id: newId, customerPhone: customer.loginPhone, status: 'Đang xử lý', table: tableInfo,
-      paymentMethod: paymentMethod, generalNote: "Khách đặt từ Web",
+      id: newId, customerPhone: isGuest ? 'guest' : customer.loginPhone, status: 'Đang xử lý', table: tableInfo,
+      paymentMethod: paymentMethod, generalNote: isGuest ? "Khách đặt từ Web (không đăng nhập)" : "Khách đặt từ Web",
       items: cart, totalQty: addQty, totalPrice: calc.finalTotal,
       appliedVoucher: calc.appliedVoucherName, staffName: "Khách Tự Order",
       dateIso: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
       time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} — ${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`
     };
+    if(isGuest) { orderData.isGuest = true; orderData.guestName = guestInfo.name; orderData.guestPhone = guestInfo.phone; orderData.guestAddress = guestInfo.address; }
     db.ref('meoxam_data/orders').once('value').then(snap => {
       let orders = snap.val() || []; orders.unshift(orderData);
       return db.ref('meoxam_data/orders').set(orders);
     }).then(() => {
-      activeOrderId = newId;
-      listenToChat(newId);
-      applyAutomaticVIPTheme();
+      if(!isGuest) {
+        activeOrderId = newId;
+        listenToChat(newId);
+        applyAutomaticVIPTheme();
+      }
       finalizeSubmit("ĐẶT HÀNG THÀNH CÔNG!", earnedTicket);
     }).catch(err => alert("Lỗi gửi đơn: " + err.message));
   }
+  };
+  if(needTx) {
+    txCustomer(d => {
+      if(calc.voucherId !== 'none') {
+        const v = d.vouchers.find(x => x.id === calc.voucherId);
+        if(!v || v.used || v.revoked) return false;
+        v.used = true;
+        if(!d.usedVoucherLog) d.usedVoucherLog = {};
+        d.usedVoucherLog[effectiveOrderId] = v.id;
+      }
+      if(earnedTicket) d.ticketLedger.push({ id: uid(), source: 'order', sourceOrderId: effectiveOrderId, status: 'unused', voucherId: null });
+    }).then(res => {
+      if(!res.committed) { alert("Voucher này không còn hiệu lực (đã dùng hoặc bị quán thu hồi). Vui lòng chọn lại voucher khác!"); renderCartUI(); updateBottomCartBar(); showScreen('step3-cart'); return; }
+      doSend();
+    }).catch(err => alert("Lỗi kết nối: " + err.message));
+  } else { doSend(); }
 }
 
 function finalizeSubmit(title, earnedTicket) {
   let extraMsg = earnedTicket ? "\n🎁 Chúc mừng bạn nhận thêm 1 Ticket vì đơn hàng có từ 3 món nước trở lên!" : "";
   document.getElementById('success-title').textContent = title;
-  document.getElementById('success-name').textContent = customer.name + extraMsg;
+  document.getElementById('success-name').textContent = (isGuest ? (document.getElementById('guest-name').value.trim()) : customer.name) + extraMsg;
+  document.getElementById('btn-success-history').style.display = isGuest ? 'none' : '';
+  document.getElementById('btn-success-more').style.display = isGuest ? '' : 'none';
   isMergingOrder = false;
   document.getElementById('alert-merge-order').style.display = 'none';
   document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN ĐÚNG';
