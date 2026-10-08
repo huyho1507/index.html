@@ -493,6 +493,7 @@
     <div class="input-group" id="voucher-box" style="background:#fff9f0; border:2px dashed var(--accent); padding:12px; border-radius:16px; margin-bottom:16px;">
       <label style="color:var(--accent); font-weight:900;">🎟️ CHỌN VOUCHER ÁP DỤNG:</label>
       <select id="selected-voucher" onchange="onVoucherSelectChange()" style="margin-top:4px;"><option value="none">-- Không dùng voucher --</option></select>
+      <div id="voucher-lock-note" style="display:none; margin-top:8px; font-size:12px; font-weight:800; color:var(--bad);">🔒 Đơn này đã áp dụng 1 voucher rồi. Mỗi đơn chỉ được dùng 1 voucher — muốn dùng voucher khác hãy đặt đơn mới sau khi đơn này được quán hoàn thành.</div>
     </div>
     <div style="background:var(--soft); border: 2px solid var(--line); border-radius:18px; padding:16px; margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:6px;"><span>Tạm tính:</span><span id="cart-subtotal">0đ</span></div>
@@ -904,12 +905,44 @@ db.ref('meoxam_data/orders').on('value', snap => {
   const oldOrders = ALL_ORDERS;
   ALL_ORDERS = snap.val() || [];
   if(customer.loginPhone) {
+    rememberRemovedOrders(oldOrders, ALL_ORDERS);
     checkCanceledOrdersAndRevertRewards(oldOrders, ALL_ORDERS);
     processCustomerOrders(customer.loginPhone);
     applyAutomaticVIPTheme();
     if(document.getElementById('step6-history').classList.contains('active')){ renderHistoryUI(); }
   }
 }, err => { console.error("Lỗi tải đơn hàng:", err); });
+
+// Đơn đang xử lý mà bị chủ quán xóa/hủy bên app chính -> giữ lại để hiện "Đã hủy" trong lịch sử
+function removedOrdersKey() { return 'mx_removed_orders_' + customer.loginPhone; }
+let REMOTE_DELETED_ORDERS = [];
+db.ref('meoxam_data/deletedOrders').on('value', snap => {
+  const v = snap.val();
+  REMOTE_DELETED_ORDERS = Array.isArray(v) ? v : Object.values(v || {});
+  if(customer.loginPhone && document.getElementById('step6-history').classList.contains('active')) renderHistoryUI();
+}, err => console.error('Lỗi tải đơn đã xóa:', err));
+function getRemovedOrders() {
+  let local = [];
+  try { local = JSON.parse(localStorage.getItem(removedOrdersKey()) || '[]'); } catch(e) {}
+  // Đơn chủ quán đã xóa bên app chính (lưu ở meoxam_data/deletedOrders) → hiện "Đã hủy" trên mọi thiết bị
+  const remote = (REMOTE_DELETED_ORDERS || []).filter(o => o && o.customerPhone === customer.loginPhone && o.statusBeforeDelete !== 'Hoàn thành')
+    .map(o => Object.assign({}, o, { status: 'Đã hủy' }));
+  const seen = {};
+  return remote.concat(local).filter(o => { if(seen[o.id]) return false; seen[o.id] = 1; return true; });
+}
+function rememberRemovedOrders(oldList, newList) {
+  if(!Array.isArray(oldList) || !Array.isArray(newList) || !customer.loginPhone) return;
+  const gone = oldList.filter(o => o && o.customerPhone === customer.loginPhone
+    && o.status !== 'Hoàn thành' && o.status !== 'Đã hủy'
+    && !newList.some(n => n && n.id === o.id));
+  if(gone.length === 0) return;
+  const saved = getRemovedOrders();
+  gone.forEach(o => {
+    if(saved.some(x => x.id === o.id)) return;
+    saved.unshift(Object.assign({}, o, { status: 'Đã hủy', removedAt: Date.now() }));
+  });
+  try { localStorage.setItem(removedOrdersKey(), JSON.stringify(saved.slice(0, 30))); } catch(e) {}
+}
 
 function checkCanceledOrdersAndRevertRewards(oldList, newList) {
   if(!oldList || !Array.isArray(oldList)) return;
@@ -1417,7 +1450,8 @@ function openHistoryScreen() { renderHistoryUI(); showScreen('step6-history'); }
 function renderHistoryUI() {
   const myOrders = ALL_ORDERS.filter(o => o.customerPhone === customer.loginPhone);
   const activeOrder = myOrders.find(o => o.status !== 'Hoàn thành' && o.status !== 'Đã hủy');
-  const pastOrders = myOrders.filter(o => o.status === 'Hoàn thành' || o.status === 'Đã hủy');
+  const removedOrders = getRemovedOrders().filter(r => !myOrders.some(o => o.id === r.id));
+  const pastOrders = removedOrders.concat(myOrders.filter(o => o.status === 'Hoàn thành' || o.status === 'Đã hủy'));
   const activeContainer = document.getElementById('hist-active-order');
   if(activeOrder) {
     const itemsHtml = (activeOrder.items||[]).map(i => `<div class="history-item-line">• ${i.name} (${i.size}) x ${i.qty}</div><div class="history-item-sub">${i.toppings?'+ '+i.toppings.map(t=>t.name).join(', '):''}</div>`).join('');
@@ -1444,6 +1478,7 @@ function renderHistoryUI() {
       return `
         <div class="history-card ${hasVoucher ? 'voucher-glow' : ''}" style="opacity:0.9;">
           <div class="history-card-header"><span>${o.time.split(' — ')[1]} ${isCanceled?'<b style="color:red">(Đã Hủy)</b>':''}</span><span style="color:var(--good);">${fmt(o.totalPrice)}đ</span></div>
+          ${isCanceled ? `<div style="font-size:12px; color:var(--bad); font-weight:800; margin-bottom:6px;">❌ Đơn này đã bị hủy</div>` : ''}
           ${hasVoucher ? `<div style="font-size:12px; color:var(--purple); font-weight:800; margin-bottom:6px;">✨ Áp dụng Voucher: ${o.appliedVoucher}</div>` : ''}
           <div>${itemsHtml}</div>
         </div>`;
@@ -1624,9 +1659,45 @@ function updateBottomCartBar() {
   bar.classList.add('visible');
 }
 
+// ===== QUY TẮC: 1 ĐƠN CHỈ 1 VOUCHER; ĐƠN MỚI CHỈ ĐẶT KHI ĐƠN CŨ ĐÃ XONG =====
+function getBlockingOrder() {
+  if(isGuest || !customer.loginPhone || !Array.isArray(ALL_ORDERS)) return null;
+  return ALL_ORDERS.find(o => o && o.customerPhone === customer.loginPhone && o.status !== 'Hoàn thành' && o.status !== 'Đã hủy') || null;
+}
+function getMergeTargetOrder() {
+  if(!isMergingOrder || !activeOrderId || !Array.isArray(ALL_ORDERS)) return null;
+  return ALL_ORDERS.find(o => o && o.id === activeOrderId) || null;
+}
+function orderAlreadyHasVoucher(o) {
+  if(!o) return false;
+  if(o.appliedVoucher && o.appliedVoucher !== 'none') return true;
+  return !!(customer.usedVoucherLog && customer.usedVoucherLog[o.id]);
+}
+function isVoucherLockedForCurrentCart() {
+  const t = getMergeTargetOrder();
+  return !!t && orderAlreadyHasVoucher(t);
+}
+function resetMergeMode() {
+  isMergingOrder = false;
+  document.getElementById('alert-merge-order').style.display = 'none';
+  document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN ĐÚNG';
+  document.getElementById('payment-subtitle').textContent = 'Chọn hình thức thanh toán cho đơn hàng';
+  document.getElementById('payment-options-container').style.display = 'block';
+}
+
 function updateVoucherDropdown() {
   const selectEl = document.getElementById('selected-voucher');
   if(!selectEl) return;
+  const lockNote = document.getElementById('voucher-lock-note');
+  if(isVoucherLockedForCurrentCart()) {
+    selectEl.innerHTML = '<option value="none">-- Không dùng voucher --</option>';
+    selectEl.value = 'none';
+    selectEl.disabled = true;
+    if(lockNote) lockNote.style.display = 'block';
+    return;
+  }
+  selectEl.disabled = false;
+  if(lockNote) lockNote.style.display = 'none';
   const currentVal = selectEl.value;
   // KIỂM SOÁT VOUCHER CHUẨN XÁC: Loại bỏ voucher đã dùng VÀ voucher bị thu hồi
   const validVouchers = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
@@ -1644,7 +1715,7 @@ function calculateFinalTotal() {
   let subtotal = cart.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
   let discount = 0;
   const selectEl = document.getElementById('selected-voucher');
-  const voucherId = selectEl ? selectEl.value : 'none';
+  const voucherId = (selectEl && !isVoucherLockedForCurrentCart()) ? selectEl.value : 'none';
   let appliedVoucherName = 'none';
   if(voucherId !== 'none') {
     const vObj = (customer.vouchers || []).find(v => v.id === voucherId);
@@ -1709,7 +1780,29 @@ function updateQty(idx, delta) {
   renderCartUI(); updateBottomCartBar(); if(cart.length === 0) showScreen('step2-menu');
 }
 function clearCart() { if(confirm('Xóa toàn bộ giỏ hàng?')) { cart = []; renderCartUI(); updateBottomCartBar(); showScreen('step2-menu'); } }
-function goToPayment() { if(cart.length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
+function notifyCannotOrderNew(blocking) {
+  if(blocking && blocking.status === 'Yêu cầu hủy') {
+    alert("Đơn trước của bạn đang chờ quán xác nhận hủy. Bạn chỉ đặt được đơn mới sau khi quán xử lý xong đơn đó.");
+  } else {
+    alert("Bạn đang có 1 đơn chưa được quán hoàn thành.\n\n• Muốn thêm món: vào Lịch sử → bấm ➕ Gọi Thêm.\n• Muốn dùng voucher khác: hãy đợi đơn này hoàn thành rồi đặt đơn mới.");
+  }
+}
+function goToPayment() {
+  if(cart.length === 0) return;
+  if(!isGuest) {
+    if(isMergingOrder) {
+      const t = getMergeTargetOrder();
+      if(!t || t.status === 'Hoàn thành' || t.status === 'Đã hủy' || t.status === 'Yêu cầu hủy') {
+        alert("Đơn này đã kết thúc hoặc đang yêu cầu hủy nên không thể gọi thêm món nữa.");
+        resetMergeMode(); openHistoryScreen(); return;
+      }
+    } else {
+      const blocking = getBlockingOrder();
+      if(blocking) { notifyCannotOrderNew(blocking); openHistoryScreen(); return; }
+    }
+  }
+  selectPayment('Tiền mặt'); showScreen('step4-payment');
+}
 function selectPayment(method) {
   paymentMethod = method;
   document.getElementById('pay-cash').classList.remove('active'); document.getElementById('pay-bank').classList.remove('active');
@@ -1719,6 +1812,18 @@ function selectPayment(method) {
 
 function submitOrder() {
   if(cart.length === 0) return;
+  if(!isGuest) {
+    if(isMergingOrder) {
+      const t = getMergeTargetOrder();
+      if(!t || t.status === 'Hoàn thành' || t.status === 'Đã hủy' || t.status === 'Yêu cầu hủy') {
+        alert("Đơn này đã kết thúc hoặc đang yêu cầu hủy nên không thể gọi thêm món nữa.");
+        resetMergeMode(); openHistoryScreen(); return;
+      }
+    } else {
+      const blocking = getBlockingOrder();
+      if(blocking) { notifyCannotOrderNew(blocking); openHistoryScreen(); return; }
+    }
+  }
   let guestInfo = null;
   if(isGuest) {
     const gName = document.getElementById('guest-name').value.trim();
@@ -1736,6 +1841,9 @@ function submitOrder() {
   const newId = `order_web_${uid()}`;
   const effectiveOrderId = (isMergingOrder && activeOrderId) ? activeOrderId : newId;
   const earnedTicket = (addQty >= 3 && !isGuest);
+  if(!isGuest && isMergingOrder && calc.voucherId !== 'none' && isVoucherLockedForCurrentCart()) {
+    alert("Đơn này đã dùng 1 voucher rồi, mỗi đơn chỉ được dùng 1 voucher!"); renderCartUI(); updateBottomCartBar(); return;
+  }
   const needTx = !isGuest && (earnedTicket || calc.voucherId !== 'none');
   const doSend = () => {
   if(isMergingOrder && activeOrderId && !isGuest) {
@@ -1746,6 +1854,7 @@ function submitOrder() {
         orders[idx].items = (orders[idx].items || []).concat(cart);
         orders[idx].totalQty += addQty;
         orders[idx].totalPrice += calc.finalTotal;
+        if(calc.voucherId !== 'none' && (!orders[idx].appliedVoucher || orders[idx].appliedVoucher === 'none')) orders[idx].appliedVoucher = calc.appliedVoucherName;
         orders[idx].generalNote = (orders[idx].generalNote || '') + " | (Vừa gọi thêm món)";
         return db.ref('meoxam_data/orders').set(orders);
       }
@@ -1800,11 +1909,7 @@ function finalizeSubmit(title, earnedTicket) {
   document.getElementById('success-name').textContent = (isGuest ? (document.getElementById('guest-name').value.trim()) : customer.name) + extraMsg;
   document.getElementById('btn-success-history').style.display = isGuest ? 'none' : '';
   document.getElementById('btn-success-more').style.display = isGuest ? '' : 'none';
-  isMergingOrder = false;
-  document.getElementById('alert-merge-order').style.display = 'none';
-  document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN ĐÚNG';
-  document.getElementById('payment-subtitle').textContent = 'Chọn hình thức thanh toán cho đơn hàng';
-  document.getElementById('payment-options-container').style.display = 'block';
+  resetMergeMode();
   showScreen('step5-success');
   cart = []; updateBottomCartBar();
 }
