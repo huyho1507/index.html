@@ -104,7 +104,7 @@
   .cart-list { margin-bottom: 20px; }
   .cart-item-wrapper { position: relative; overflow: hidden; border-radius: 18px; margin-bottom: 14px; border: 2px solid var(--line); background: #d9534f; }
   .cart-item-bg-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 85px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; }
-  .cart-item-surface { position: relative; z-index: 2; background: var(--card); padding: 16px; transition: transform 0.3s ease; border-radius: 16px; width: 100%; }
+  .cart-item-surface { position: relative; z-index: 2; background: var(--card); padding: 16px; transition: transform 0.3s ease; border-radius: 16px; width: 100%; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
   .cart-item-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 15px; margin-bottom: 4px; }
   .cart-item-sub { font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
   .qty-controls { display: flex; align-items: center; gap: 12px; }
@@ -1820,6 +1820,7 @@ function onVoucherSelectChange() { renderCartUI(); updateBottomCartBar(); }
 function calculateFinalTotal() {
   let subtotal = cart.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
   let discount = 0;
+  cart.forEach(i => { delete i.voucherFree; });
   const selectEl = document.getElementById('selected-voucher');
   const voucherId = selectEl ? selectEl.value : 'none';
   let appliedVoucherName = 'none';
@@ -1829,7 +1830,17 @@ function calculateFinalTotal() {
       appliedVoucherName = vObj.name;
       const nameLower = vObj.name.toLowerCase();
       if (nameLower.includes("free") || nameLower.includes("1 ly")) {
-        if(cart.length > 0) { let minItemPrice = Math.min(...cart.map(i => i.unitPrice)); discount = minItemPrice; }
+        // Ly Free: chọn ly có GIÁ NƯỚC GỐC rẻ nhất trong giỏ (không tính topping) và chỉ miễn phí phần giá nước đó.
+        // Dù ly rẻ đó thêm topping làm tổng tiền cao nhất thì vẫn chọn đúng ly này; tiền topping vẫn tính cho khách.
+        if(cart.length > 0) {
+          const baseOf = i => (i.basePrice !== undefined && i.basePrice !== null) ? Number(i.basePrice) : Number(i.unitPrice);
+          let freeItem = cart[0];
+          cart.forEach(i => {
+            if(baseOf(i) < baseOf(freeItem) || (baseOf(i) === baseOf(freeItem) && i.unitPrice < freeItem.unitPrice)) freeItem = i;
+          });
+          freeItem.voucherFree = true;
+          discount = baseOf(freeItem);
+        }
       } else {
         const percentMatch = vObj.name.match(/(\d+)\s*%/);
         if (percentMatch) { const percent = parseInt(percentMatch[1]); discount = subtotal * (percent / 100); }
@@ -1853,6 +1864,7 @@ function renderCartUI() {
     document.getElementById('cart-total-final').textContent = '0đ';
     return;
   }
+  const calc = calculateFinalTotal();
   listUi.innerHTML = cart.map((item, idx) => {
     const tops = item.toppings.map(t => t.name).join(', ');
     return `
@@ -1861,7 +1873,7 @@ function renderCartUI() {
         <div class="cart-item-surface" style="transform:translateX(0);">
           <div class="cart-item-header" onclick="openEditCartItem(${idx})" style="cursor:pointer; user-select:none;">
             <div style="display:flex; align-items:center; gap:6px;">
-              ${item.name} (${item.size}) <span style="font-size:11px; background:var(--soft); padding:2px 8px; border-radius:10px; border:1px solid var(--line);">✏️ Sửa</span>
+              ${item.name} (${item.size}) <span style="font-size:11px; background:var(--soft); padding:2px 8px; border-radius:10px; border:1px solid var(--line);">✏️ Sửa</span>${item.voucherFree ? ' <span style="font-size:11px; background:#27ae60; color:#fff; padding:2px 8px; border-radius:10px; font-weight:900;">🎁 FREE</span>' : ''}
             </div>
             <div style="color:var(--good);">${fmt(item.unitPrice)}đ</div>
           </div>
@@ -1874,11 +1886,73 @@ function renderCartUI() {
         </div>
       </div>`;
   }).join('');
-  const calc = calculateFinalTotal();
   document.getElementById('cart-subtotal').textContent = `${fmt(calc.subtotal)}đ`;
   document.getElementById('cart-discount-amt').textContent = `-${fmt(calc.discount)}đ`;
   document.getElementById('cart-total-final').textContent = `${fmt(calc.finalTotal)}đ`;
 }
+
+
+// ===== Vuốt ngang món trong giỏ để xóa =====
+// Vuốt sang TRÁI: hé lộ nút "Xóa" (thả tay để giữ mở); vuốt xa hơn nửa thẻ thì xóa luôn cả dòng (kể cả khi đang đặt 3 ly).
+(function bindCartSwipe(){
+  const list = document.getElementById('cart-list-ui');
+  if(!list) return;
+  const OPEN_W = 85;
+  let st = null, openSurface = null, suppressClick = false;
+  const setX = (el, x, anim) => { el.style.transition = anim ? 'transform .25s ease' : 'none'; el.style.transform = `translateX(${x}px)`; };
+  const closeOpen = (except) => { if(openSurface && openSurface !== except){ setX(openSurface, 0, true); openSurface = null; } };
+  const deleteWrapper = (wrapper) => {
+    const idx = Array.prototype.indexOf.call(list.children, wrapper);
+    if(idx < 0) return;
+    const surface = wrapper.querySelector('.cart-item-surface');
+    if(surface) setX(surface, -wrapper.offsetWidth, true);
+    setTimeout(() => {
+      cart.splice(idx, 1);
+      renderCartUI(); updateBottomCartBar();
+      if(cart.length === 0) showScreen('step2-menu');
+    }, 200);
+  };
+  list.addEventListener('pointerdown', e => {
+    const surface = e.target.closest('.cart-item-surface');
+    if(!surface || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    closeOpen(surface);
+    const isOpen = surface === openSurface;
+    st = { surface, wrapper: surface.parentElement, id: e.pointerId, x0: e.clientX, y0: e.clientY, base: isOpen ? -OPEN_W : 0, drag: false, x: isOpen ? -OPEN_W : 0, lastX: e.clientX, lastT: performance.now(), vx: 0 };
+  });
+  list.addEventListener('pointermove', e => {
+    if(!st || e.pointerId !== st.id) return;
+    const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
+    if(!st.drag){
+      if(Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { st = null; return; }   // người dùng đang cuộn dọc
+      if(Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.2){
+        st.drag = true;
+        try { st.surface.setPointerCapture(e.pointerId); } catch(err) {}
+      } else return;
+    }
+    const w = st.wrapper.offsetWidth;
+    st.x = Math.max(-w, Math.min(0, st.base + dx));
+    const now = performance.now();
+    if(now - st.lastT > 0) st.vx = (e.clientX - st.lastX) / (now - st.lastT);
+    st.lastX = e.clientX; st.lastT = now;
+    setX(st.surface, st.x, false);
+  });
+  const finish = (e, cancelled) => {
+    if(!st || e.pointerId !== st.id) return;
+    const cur = st; st = null;
+    if(!cur.drag) return;
+    suppressClick = true; setTimeout(() => { suppressClick = false; }, 60);
+    try { cur.surface.releasePointerCapture(cur.id); } catch(err) {}
+    const w = cur.wrapper.offsetWidth;
+    if(cancelled){ setX(cur.surface, cur.base, true); openSurface = cur.base ? cur.surface : null; return; }
+    if(cur.x < -w * 0.5 || (cur.vx < -0.9 && cur.x < -OPEN_W)) { deleteWrapper(cur.wrapper); return; }   // vuốt xa/nhanh: xóa luôn
+    if(cur.x < -OPEN_W / 2) { setX(cur.surface, -OPEN_W, true); openSurface = cur.surface; }               // hé nút Xóa
+    else { setX(cur.surface, 0, true); if(openSurface === cur.surface) openSurface = null; }
+  };
+  list.addEventListener('pointerup', e => finish(e, false));
+  list.addEventListener('pointercancel', e => finish(e, true));
+  // Vuốt xong thì không kích hoạt "Sửa" / bấm nhầm
+  list.addEventListener('click', e => { if(suppressClick){ e.stopPropagation(); e.preventDefault(); } }, true);
+})();
 
 function updateQty(idx, delta) {
   cart[idx].qty += delta;
