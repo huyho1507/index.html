@@ -68,11 +68,12 @@
   .ticket-badge-wrapper { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
   .ticket-badge { background: #fff; color: var(--bad); padding: 5px 14px; border-radius: 20px; font-weight: 900; font-size: 12px; border: 1.5px solid var(--line); display: inline-block; }
   .timer-badge { background: rgba(0,0,0,0.3); color: #fff; padding: 5px 14px; border-radius: 20px; font-weight: 800; font-size: 11.5px; border: 1.5px solid rgba(255,255,255,0.4); display: inline-block; }
-  .wheel-container { position: relative; width: min(300px, 76vw); height: min(300px, 76vw); margin: 20px auto 12px auto; }
+  .wheel-container { position: relative; width: min(340px, 84vw); height: min(340px, 84vw); margin: 22px auto 12px auto; }
   .wheel-pin { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid var(--bad); border-bottom: 0; z-index: 25; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45)); }
-  .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--line); position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
-  .wheel-sector { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-start; padding-top: 25px; font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.9); pointer-events: none; }
-  .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 78px; height: 78px; background: var(--card); border: 4px solid var(--line); border-radius: 50%; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 42px; line-height: 1; font-weight: 900; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; animation: catPulse 1.8s infinite; }
+  .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--line); position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.15); background:#fff; }
+  .wheel svg { display:block; width:100%; height:100%; }
+  .wheel svg text { font-family: 'Nunito', system-ui, -apple-system, sans-serif; font-weight: 900; pointer-events: none; }
+  .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25%; height: 25%; background: var(--card); border: 4px solid var(--line); border-radius: 50%; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: min(46px, 11.5vw); touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; line-height: 1; font-weight: 900; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; animation: catPulse 1.8s infinite; }
   .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
   .category-scroll::-webkit-scrollbar { display: none; }
   .cat-chip { flex: 0 0 auto; border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 8px 20px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; }
@@ -371,7 +372,16 @@
 
   /* ===== Vòng quay gọn + chạm mèo để quay ===== */
   @keyframes catPulse { 0%{box-shadow:0 0 0 0 rgba(142,68,173,.5);} 70%{box-shadow:0 0 0 16px rgba(142,68,173,0);} 100%{box-shadow:0 0 0 0 rgba(142,68,173,0);} }
-  .wheel-center:active { transform: translate(-50%,-50%) scale(.92); }
+  .wheel-center:active, .wheel-center.charging { transform: translate(-50%,-50%) scale(.92); }
+  .wheel-center.charging { animation: none; box-shadow: 0 0 0 5px var(--pw-color, #2ecc71), 0 0 18px 4px var(--pw-color, #2ecc71); }
+  /* ===== Thanh lực (giữ mèo) ===== */
+  .power-wrap { display:flex; align-items:center; justify-content:center; gap:8px; margin:12px auto 0; width:min(250px, 76vw); }
+  .power-wrap .pw-icon { font-size:15px; line-height:1; }
+  .power-bar { flex:1; height:12px; border:2px solid var(--line); border-radius:999px; background:var(--soft); overflow:hidden; }
+  .power-fill { height:100%; width:0%; border-radius:999px; background:#2ecc71; }
+  .power-pct { min-width:38px; text-align:right; font-size:12px; font-weight:900; color:#2ecc71; }
+  .power-wrap.full .power-bar { animation: pwFull .35s infinite alternate; }
+  @keyframes pwFull { from { box-shadow:0 0 0 0 rgba(231,76,60,.0); } to { box-shadow:0 0 8px 3px rgba(231,76,60,.75); } }
   .wheel-center.disabled { animation: none; opacity: .65; pointer-events: none; }
   .wheel-info { background:#fff9f0; border:2px solid var(--accent); border-radius:16px; padding:8px 12px; margin-bottom:10px; }
   .wheel-info .wi-ticket { font-size:13px; font-weight:800; }
@@ -493,7 +503,6 @@
     <div class="input-group" id="voucher-box" style="background:#fff9f0; border:2px dashed var(--accent); padding:12px; border-radius:16px; margin-bottom:16px;">
       <label style="color:var(--accent); font-weight:900;">🎟️ CHỌN VOUCHER ÁP DỤNG:</label>
       <select id="selected-voucher" onchange="onVoucherSelectChange()" style="margin-top:4px;"><option value="none">-- Không dùng voucher --</option></select>
-      <div id="voucher-lock-note" style="display:none; margin-top:8px; font-size:12px; font-weight:800; color:var(--bad);">🔒 Đơn này đã áp dụng 1 voucher rồi. Mỗi đơn chỉ được dùng 1 voucher — muốn dùng voucher khác hãy đặt đơn mới sau khi đơn này được quán hoàn thành.</div>
     </div>
     <div style="background:var(--soft); border: 2px solid var(--line); border-radius:18px; padding:16px; margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:6px;"><span>Tạm tính:</span><span id="cart-subtotal">0đ</span></div>
@@ -579,14 +588,15 @@
 <div class="modal-overlay" id="wheel-modal">
   <div class="modal-card" style="text-align:center; padding:22px 18px 20px;">
     <h3 style="color:var(--purple); margin:0; font-size:19px;">🎡 VÒNG QUAY MAY MẮN</h3>
+    <div class="power-wrap" id="power-wrap"><span class="pw-icon">⚡</span><div class="power-bar"><div class="power-fill" id="power-fill"></div></div><span class="power-pct" id="power-pct">0%</span></div>
     <div class="wheel-container">
       <div class="wheel-pin"></div>
       <div class="wheel" id="visual-wheel"></div>
-      <div class="wheel-center" id="wheel-center" onclick="spinWheel()" title="Chạm để quay">😺</div>
+      <div class="wheel-center" id="wheel-center" title="Giữ để nạp lực, thả để quay">😺</div>
     </div>
     <div class="wheel-info">
       <div class="wi-ticket">🎫 Số vé: <span id="wheel-ticket-display" style="color:var(--bad); font-size:16px; font-weight:900;">0</span> Ticket</div>
-      <div class="wi-result" id="wheel-result-box">Chạm vào chú mèo để quay!</div>
+      <div class="wi-result" id="wheel-result-box">Giữ chú mèo để nạp lực, thả tay để quay!</div>
     </div>
     <div class="wheel-chips">
       <button class="wheel-chip" id="chip-bag" onclick="toggleWheelPanel('bag')">🎒 Voucher (<span id="bag-count">0</span>)</button>
@@ -725,7 +735,7 @@ db.ref('meoxam_data/productImages').on('value', snap => {
   }
 });
 
-const WHEEL_COLOR_PALETTE = ['#e74c3c','#f39c12','#f1c40f','#2ecc71','#3498db','#9b59b6','#e67e22','#7f8c8d','#1abc9c','#34495e'];
+const WHEEL_COLOR_PALETTE = ['#e53935','#fb8c00','#c9a400','#43a047','#00897b','#1e88e5','#5e35b1','#d81b60','#37474f','#6d4c41','#00acc1','#7cb342','#3949ab','#9e9d24'];
 function normalizeWheelConfig(raw) {
   let list = [];
   if (Array.isArray(raw)) {
@@ -738,7 +748,7 @@ function normalizeWheelConfig(raw) {
     name: it.name || 'Phần thưởng',
     discount: (it.discount !== undefined) ? Number(it.discount) : Number(it.discountValue || 0),
     ratio: (it.ratio !== undefined) ? Number(it.ratio) : Number(it.weight || 1),
-    color: it.color || WHEEL_COLOR_PALETTE[idx % WHEEL_COLOR_PALETTE.length]
+    color: it.color || ''
   }));
 }
 
@@ -758,25 +768,110 @@ db.ref('meoxam_data/config').on('value', snap => {
   renderDynamicWheel();
 });
 
+// ===== Vẽ vòng quay bằng SVG: chữ tự xuống dòng + tự co chữ cho vừa trong ô, màu không trùng =====
+function _hexToRgb(h){
+  h=String(h||'').trim().replace('#','');
+  if(h.length===3) h=h.split('').map(c=>c+c).join('');
+  if(!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+}
+function _colorDist(a,b){ return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2); }
+function _toHex(rgb){ return '#'+rgb.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join(''); }
+function _hslToHex(h,s,l){
+  s/=100; l/=100;
+  const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l);
+  const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  return _toHex([f(0)*255,f(8)*255,f(4)*255]);
+}
+// Mỗi ô một màu riêng: nếu màu cấu hình bị trùng/quá giống ô khác thì tự thay bằng màu khác trong bảng màu.
+function pickDistinctColors(list){
+  const MIN_DIST = 70, used = [], out = [];
+  const tryColor = (hex) => {
+    const rgb=_hexToRgb(hex); if(!rgb) return false;
+    if(used.every(u=>_colorDist(u,rgb)>=MIN_DIST)){ used.push(rgb); out.push(_toHex(rgb)); return true; }
+    return false;
+  };
+  list.forEach((sec,i)=>{
+    if(sec.color && tryColor(sec.color)) return;
+    for(const c of WHEEL_COLOR_PALETTE){ if(tryColor(c)) return; }
+    for(let k=0;k<72;k++){ if(tryColor(_hslToHex((k*47+i*13)%360, 70, 42))) return; }
+    const fb=_hslToHex((i*137)%360,65,40); used.push(_hexToRgb(fb)); out.push(fb);
+  });
+  return out;
+}
+let _wheelMeasureCtx = null;
+function _measureEm(text){
+  try{
+    if(!_wheelMeasureCtx) _wheelMeasureCtx = document.createElement('canvas').getContext('2d');
+    _wheelMeasureCtx.font = "900 100px Nunito, system-ui, -apple-system, sans-serif";
+    return _wheelMeasureCtx.measureText(text).width / 100;
+  }catch(e){ return text.length * 0.6; }
+}
+function _splitOptions(words){
+  const opts=[[words.join(' ')]], n=words.length;
+  for(let i=1;i<n;i++) opts.push([words.slice(0,i).join(' '), words.slice(i).join(' ')]);
+  for(let i=1;i<n-1;i++) for(let j=i+1;j<n;j++) opts.push([words.slice(0,i).join(' '), words.slice(i,j).join(' '), words.slice(j).join(' ')]);
+  return opts;
+}
+// Chọn cách ngắt dòng + cỡ chữ lớn nhất mà khối chữ vẫn nằm gọn trong hình quạt (r0..r1 tính từ tâm).
+function fitWheelLabel(text, halfAngleRad, r0, r1){
+  const words = String(text||'').trim().split(/\s+/).filter(Boolean);
+  if(!words.length) words.push('?');
+  const tanH = Math.tan(Math.min(halfAngleRad, Math.PI/2 - 0.05));
+  const LH = 1.14, PAD = 1.6;
+  let best = null;
+  _splitOptions(words).forEach(lines=>{
+    const em = Math.max(...lines.map(_measureEm));
+    for(let fs=13; fs>=4.5; fs-=0.25){
+      const w = em*fs, h = lines.length*fs*LH;
+      const startR = r1 - w;
+      if(startR < r0) continue;
+      if(h/2 > startR*tanH - PAD) continue;
+      if(!best || fs > best.fs + 0.01 || (Math.abs(fs-best.fs)<=0.01 && lines.length < best.lines.length)) best = { lines, fs, LH };
+      break;
+    }
+  });
+  if(!best){ const fs=4.5; best={ lines:[words.join(' ')], fs, LH }; }
+  return best;
+}
+function _escHtml(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function renderDynamicWheel() {
   const wheelEl = document.getElementById('visual-wheel');
   if(!wheelEl) return;
-  const totalSectors = WHEEL_CONFIG.length;
-  let gradientStops = [];
-  let sectorsHtml = '';
-  let currentDeg = 0;
-  const degPerSector = 360 / totalSectors;
-  WHEEL_CONFIG.forEach((sec, index) => {
-    const startDeg = currentDeg;
-    const endDeg = currentDeg + degPerSector;
-    gradientStops.push(`${sec.color || '#e74c3c'} ${startDeg}deg ${endDeg}deg`);
-    const textAngle = startDeg + (degPerSector / 2);
-    sectorsHtml += `<div class="wheel-sector" style="transform: rotate(${textAngle}deg);"><span>${sec.name}</span></div>`;
-    currentDeg = endDeg;
+  const n = WHEEL_CONFIG.length;
+  if(!n) { wheelEl.innerHTML = ''; return; }
+  const R = 100, R_TEXT_IN = 30, R_TEXT_OUT = 94;
+  const deg = 360 / n, half = (deg/2) * Math.PI / 180;
+  const colors = pickDistinctColors(WHEEL_CONFIG);
+  const pt = (a, r) => { const rad = a*Math.PI/180; return [ (r*Math.sin(rad)).toFixed(3), (-r*Math.cos(rad)).toFixed(3) ]; };
+  let wedges = '', labels = '';
+  WHEEL_CONFIG.forEach((sec, i) => {
+    const a1 = i*deg, a2 = (i+1)*deg, mid = a1 + deg/2;
+    const col = colors[i];
+    if(n === 1){
+      wedges += `<circle cx="0" cy="0" r="${R}" fill="${col}"/>`;
+    } else {
+      const [x1,y1] = pt(a1,R), [x2,y2] = pt(a2,R);
+      wedges += `<path d="M0 0 L${x1} ${y1} A${R} ${R} 0 ${deg>180?1:0} 1 ${x2} ${y2} Z" fill="${col}" stroke="#fff" stroke-width="0.7" stroke-linejoin="round"/>`;
+    }
+    const rgb = _hexToRgb(col) || [0,0,0];
+    const lum = (0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]) / 255;
+    const light = lum > 0.68;
+    const fit = fitWheelLabel(sec.name, n === 1 ? Math.PI/2 - 0.06 : half, R_TEXT_IN, R_TEXT_OUT);
+    const tcol = light ? '#1b1b1b' : '#ffffff';
+    const stroke = light ? 'none' : 'rgba(0,0,0,0.35)';
+    let texts = '';
+    fit.lines.forEach((ln, k) => {
+      const y = (k - (fit.lines.length-1)/2) * fit.fs * fit.LH;
+      texts += `<text x="${R_TEXT_OUT}" y="${y.toFixed(2)}" dy=".35em" text-anchor="end" font-size="${fit.fs}" fill="${tcol}" stroke="${stroke}" stroke-width="0.55" paint-order="stroke" stroke-linejoin="round">${_escHtml(ln)}</text>`;
+    });
+    labels += `<g transform="rotate(${(mid-90).toFixed(3)})">${texts}</g>`;
   });
-  wheelEl.style.background = `conic-gradient(${gradientStops.join(', ')})`;
-  wheelEl.innerHTML = sectorsHtml;
+  wheelEl.innerHTML = `<svg viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${wedges}${labels}</svg>`;
 }
+// Font Nunito tải xong thì vẽ lại để đo chữ chính xác
+if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => { try { renderDynamicWheel(); } catch(e) {} }); }
 
 function checkVIPStatus() {
   if (!customer.loginPhone || !ALL_ORDERS) return false;
@@ -905,44 +1000,12 @@ db.ref('meoxam_data/orders').on('value', snap => {
   const oldOrders = ALL_ORDERS;
   ALL_ORDERS = snap.val() || [];
   if(customer.loginPhone) {
-    rememberRemovedOrders(oldOrders, ALL_ORDERS);
     checkCanceledOrdersAndRevertRewards(oldOrders, ALL_ORDERS);
     processCustomerOrders(customer.loginPhone);
     applyAutomaticVIPTheme();
     if(document.getElementById('step6-history').classList.contains('active')){ renderHistoryUI(); }
   }
 }, err => { console.error("Lỗi tải đơn hàng:", err); });
-
-// Đơn đang xử lý mà bị chủ quán xóa/hủy bên app chính -> giữ lại để hiện "Đã hủy" trong lịch sử
-function removedOrdersKey() { return 'mx_removed_orders_' + customer.loginPhone; }
-let REMOTE_DELETED_ORDERS = [];
-db.ref('meoxam_data/deletedOrders').on('value', snap => {
-  const v = snap.val();
-  REMOTE_DELETED_ORDERS = Array.isArray(v) ? v : Object.values(v || {});
-  if(customer.loginPhone && document.getElementById('step6-history').classList.contains('active')) renderHistoryUI();
-}, err => console.error('Lỗi tải đơn đã xóa:', err));
-function getRemovedOrders() {
-  let local = [];
-  try { local = JSON.parse(localStorage.getItem(removedOrdersKey()) || '[]'); } catch(e) {}
-  // Đơn chủ quán đã xóa bên app chính (lưu ở meoxam_data/deletedOrders) → hiện "Đã hủy" trên mọi thiết bị
-  const remote = (REMOTE_DELETED_ORDERS || []).filter(o => o && o.customerPhone === customer.loginPhone && o.statusBeforeDelete !== 'Hoàn thành')
-    .map(o => Object.assign({}, o, { status: 'Đã hủy' }));
-  const seen = {};
-  return remote.concat(local).filter(o => { if(seen[o.id]) return false; seen[o.id] = 1; return true; });
-}
-function rememberRemovedOrders(oldList, newList) {
-  if(!Array.isArray(oldList) || !Array.isArray(newList) || !customer.loginPhone) return;
-  const gone = oldList.filter(o => o && o.customerPhone === customer.loginPhone
-    && o.status !== 'Hoàn thành' && o.status !== 'Đã hủy'
-    && !newList.some(n => n && n.id === o.id));
-  if(gone.length === 0) return;
-  const saved = getRemovedOrders();
-  gone.forEach(o => {
-    if(saved.some(x => x.id === o.id)) return;
-    saved.unshift(Object.assign({}, o, { status: 'Đã hủy', removedAt: Date.now() }));
-  });
-  try { localStorage.setItem(removedOrdersKey(), JSON.stringify(saved.slice(0, 30))); } catch(e) {}
-}
 
 function checkCanceledOrdersAndRevertRewards(oldList, newList) {
   if(!oldList || !Array.isArray(oldList)) return;
@@ -1217,7 +1280,7 @@ function updateTicketUI() {
 function openWheelModal() {
   if(isGuest || !customer.loginPhone) { goRegisterFromGuest(); return; }
   updateTicketUI();
-  if(!isSpinning) document.getElementById('wheel-result-box').textContent = "Chạm vào chú mèo để quay!";
+  if(!isSpinning) document.getElementById('wheel-result-box').textContent = "Giữ chú mèo để nạp lực, thả tay để quay!";
   document.getElementById('wheel-panel-bag').style.display = 'none';
   document.getElementById('wheel-panel-hist').style.display = 'none';
   document.getElementById('chip-bag').classList.remove('active');
@@ -1324,18 +1387,96 @@ function txCustomer(mutator) {
   });
 }
 
-function spinWheel() {
-  if(isSpinning) return;
+// ===== Giữ mèo để nạp lực (tối đa 3 giây: xanh -> đỏ), thả tay để quay =====
+const CHARGE_MAX_MS = 3000;
+let isCharging = false, chargeStartTs = 0, chargeRaf = 0, chargePid = null;
+
+function powerColor(p){ return `hsl(${Math.round(120*(1-p))}, 85%, 44%)`; }
+function setPowerUI(p){
+  const fill = document.getElementById('power-fill'), pct = document.getElementById('power-pct');
+  const wrap = document.getElementById('power-wrap'), cat = document.getElementById('wheel-center');
+  const col = powerColor(p);
+  if(fill){ fill.style.width = (p*100).toFixed(1) + '%'; fill.style.background = col; }
+  if(pct){ pct.textContent = Math.round(p*100) + '%'; pct.style.color = col; }
+  if(wrap) wrap.classList.toggle('full', p >= 1);
+  if(cat) cat.style.setProperty('--pw-color', col);
+}
+function chargeTick(){
+  if(!isCharging) return;
+  const p = Math.min(1, (performance.now() - chargeStartTs) / CHARGE_MAX_MS);
+  setPowerUI(p);
+  const cat = document.getElementById('wheel-center');
+  if(cat && p > 0.05){ // mèo rung mạnh dần theo lực
+    const amp = 0.5 + p * 2.5, t = performance.now() / 28;
+    cat.style.transform = `translate(calc(-50% + ${(Math.sin(t) * amp).toFixed(2)}px), calc(-50% + ${(Math.cos(t * 1.3) * amp).toFixed(2)}px)) scale(.92)`;
+  }
+  chargeRaf = requestAnimationFrame(chargeTick);
+}
+function resetCatTransform(){ const cat = document.getElementById('wheel-center'); if(cat) cat.style.transform = ''; }
+function startCharge(e){
+  if(e && e.preventDefault) e.preventDefault();
+  if(isSpinning || isCharging) return;
   if(isGuest || !customer.loginPhone) { goRegisterFromGuest(); return; }
   const resultBox = document.getElementById('wheel-result-box');
   if((customer.tickets || 0) <= 0) { resultBox.innerHTML = '<span style="color:var(--bad);">🎫 Hết vé rồi! Đặt đơn từ 3 món nước hoặc chờ vé định kỳ nhé.</span>'; return; }
+  isCharging = true;
+  chargeStartTs = performance.now();
+  chargePid = (e && e.pointerId !== undefined) ? e.pointerId : null;
+  const cat = document.getElementById('wheel-center');
+  try { if(chargePid !== null) cat.setPointerCapture(chargePid); } catch(err) {}
+  cat.classList.add('charging');
+  resultBox.textContent = '⚡ Đang nạp lực... thả tay để quay!';
+  setPowerUI(0);
+  chargeRaf = requestAnimationFrame(chargeTick);
+}
+function endCharge(e, cancelled){
+  if(!isCharging) return;
+  if(e && chargePid !== null && e.pointerId !== undefined && e.pointerId !== chargePid) return;
+  isCharging = false;
+  cancelAnimationFrame(chargeRaf);
+  const cat = document.getElementById('wheel-center');
+  cat.classList.remove('charging');
+  resetCatTransform();
+  try { if(chargePid !== null) cat.releasePointerCapture(chargePid); } catch(err) {}
+  chargePid = null;
+  const p = Math.min(1, (performance.now() - chargeStartTs) / CHARGE_MAX_MS);
+  if(cancelled){
+    setPowerUI(0);
+    document.getElementById('wheel-result-box').textContent = 'Giữ chú mèo để nạp lực, thả tay để quay!';
+    return;
+  }
+  spinWheel(Math.max(0.08, p)); // chạm nhẹ vẫn quay với lực nhỏ nhất
+}
+(function bindCatCharge(){
+  const cat = document.getElementById('wheel-center');
+  if(!cat) return;
+  cat.addEventListener('pointerdown', startCharge);
+  cat.addEventListener('pointerup', e => endCharge(e, false));
+  cat.addEventListener('pointercancel', e => endCharge(e, true));
+  cat.addEventListener('contextmenu', e => e.preventDefault());
+  cat.addEventListener('dragstart', e => e.preventDefault());
+})();
+
+function spinWheel(power) {
+  if(isSpinning) return;
+  if(typeof power !== 'number') power = 0.3;
+  power = Math.max(0, Math.min(1, power));
+  if(isGuest || !customer.loginPhone) { goRegisterFromGuest(); return; }
+  const resultBox = document.getElementById('wheel-result-box');
+  if((customer.tickets || 0) <= 0) { setPowerUI(0); resultBox.innerHTML = '<span style="color:var(--bad);">🎫 Hết vé rồi! Đặt đơn từ 3 món nước hoặc chờ vé định kỳ nhé.</span>'; return; }
   isSpinning = true;
   document.getElementById('wheel-center').classList.add('disabled');
-  resultBox.textContent = "🎡 Đang quay...";
+  setPowerUI(power);
+  resultBox.textContent = power >= 0.85 ? "🔥 Lực cực mạnh! Đang quay..." : "🎡 Đang quay...";
   const winningIndex = pickWeightedIndex();
   const wonItem = WHEEL_CONFIG[winningIndex];
   const nowStr = new Date(getVNDate()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
   const isLose = !wonItem.name || wonItem.name.toLowerCase().includes("chúc may mắn") || Number(wonItem.discount) === 0;
+  const finishSpin = () => {
+    isSpinning = false;
+    document.getElementById('wheel-center').classList.remove('disabled');
+    setPowerUI(0);
+  };
   txCustomer(d => {
     const tk = d.ticketLedger.find(x => x.status === 'unused');
     if(!tk) return false;
@@ -1348,28 +1489,31 @@ function spinWheel() {
     d.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: tk.id, revoked: false });
   }).then(res => {
     if(!res.committed) {
-      isSpinning = false;
-      document.getElementById('wheel-center').classList.remove('disabled');
+      finishSpin();
       resultBox.innerHTML = '<span style="color:var(--bad);">🎫 Hết vé rồi!</span>';
       return;
     }
     const totalSectors = WHEEL_CONFIG.length;
     const degPerSector = 360 / totalSectors;
-    const targetSectorCenterAngle = (winningIndex * degPerSector) + (degPerSector / 2);
-    const finalDegree = 360 * 5 + (360 - targetSectorCenterAngle);
+    const jitter = (Math.random() - 0.5) * degPerSector * 0.6; // dừng lệch nhẹ trong ô, vẫn nằm đúng ô trúng
+    const targetSectorCenterAngle = (winningIndex * degPerSector) + (degPerSector / 2) + jitter;
+    // Lực càng lớn: càng nhiều vòng và quay càng nhanh ban đầu (3 -> 12 vòng, 3.4s -> 6s)
+    const turns = 3 + Math.round(9 * power);
+    const durSec = 3.4 + 2.6 * power;
+    const finalDegree = 360 * turns + (360 - targetSectorCenterAngle);
     currentWheelRotation += (finalDegree - (currentWheelRotation % 360));
-    document.getElementById('visual-wheel').style.transform = `rotate(${currentWheelRotation}deg)`;
+    const wheelEl = document.getElementById('visual-wheel');
+    wheelEl.style.transition = `transform ${durSec}s cubic-bezier(0.15, 0.9, 0.2, 1)`;
+    wheelEl.style.transform = `rotate(${currentWheelRotation}deg)`;
     setTimeout(() => {
-      isSpinning = false;
-      document.getElementById('wheel-center').classList.remove('disabled');
+      finishSpin();
       resultBox.innerHTML = isLose
         ? `😢 <b style="color:var(--bad);">Rất tiếc! Chúc bạn may mắn lần sau.</b>`
         : `🎉 Trúng: <b style="color:var(--good);">${wonItem.name}</b>`;
       updateTicketUI();
-    }, 4000);
+    }, durSec * 1000);
   }).catch(err => {
-    isSpinning = false;
-    document.getElementById('wheel-center').classList.remove('disabled');
+    finishSpin();
     resultBox.textContent = "Lỗi kết nối, thử lại nhé!";
     console.error(err);
   });
@@ -1450,8 +1594,7 @@ function openHistoryScreen() { renderHistoryUI(); showScreen('step6-history'); }
 function renderHistoryUI() {
   const myOrders = ALL_ORDERS.filter(o => o.customerPhone === customer.loginPhone);
   const activeOrder = myOrders.find(o => o.status !== 'Hoàn thành' && o.status !== 'Đã hủy');
-  const removedOrders = getRemovedOrders().filter(r => !myOrders.some(o => o.id === r.id));
-  const pastOrders = removedOrders.concat(myOrders.filter(o => o.status === 'Hoàn thành' || o.status === 'Đã hủy'));
+  const pastOrders = myOrders.filter(o => o.status === 'Hoàn thành' || o.status === 'Đã hủy');
   const activeContainer = document.getElementById('hist-active-order');
   if(activeOrder) {
     const itemsHtml = (activeOrder.items||[]).map(i => `<div class="history-item-line">• ${i.name} (${i.size}) x ${i.qty}</div><div class="history-item-sub">${i.toppings?'+ '+i.toppings.map(t=>t.name).join(', '):''}</div>`).join('');
@@ -1478,7 +1621,6 @@ function renderHistoryUI() {
       return `
         <div class="history-card ${hasVoucher ? 'voucher-glow' : ''}" style="opacity:0.9;">
           <div class="history-card-header"><span>${o.time.split(' — ')[1]} ${isCanceled?'<b style="color:red">(Đã Hủy)</b>':''}</span><span style="color:var(--good);">${fmt(o.totalPrice)}đ</span></div>
-          ${isCanceled ? `<div style="font-size:12px; color:var(--bad); font-weight:800; margin-bottom:6px;">❌ Đơn này đã bị hủy</div>` : ''}
           ${hasVoucher ? `<div style="font-size:12px; color:var(--purple); font-weight:800; margin-bottom:6px;">✨ Áp dụng Voucher: ${o.appliedVoucher}</div>` : ''}
           <div>${itemsHtml}</div>
         </div>`;
@@ -1659,45 +1801,9 @@ function updateBottomCartBar() {
   bar.classList.add('visible');
 }
 
-// ===== QUY TẮC: 1 ĐƠN CHỈ 1 VOUCHER; ĐƠN MỚI CHỈ ĐẶT KHI ĐƠN CŨ ĐÃ XONG =====
-function getBlockingOrder() {
-  if(isGuest || !customer.loginPhone || !Array.isArray(ALL_ORDERS)) return null;
-  return ALL_ORDERS.find(o => o && o.customerPhone === customer.loginPhone && o.status !== 'Hoàn thành' && o.status !== 'Đã hủy') || null;
-}
-function getMergeTargetOrder() {
-  if(!isMergingOrder || !activeOrderId || !Array.isArray(ALL_ORDERS)) return null;
-  return ALL_ORDERS.find(o => o && o.id === activeOrderId) || null;
-}
-function orderAlreadyHasVoucher(o) {
-  if(!o) return false;
-  if(o.appliedVoucher && o.appliedVoucher !== 'none') return true;
-  return !!(customer.usedVoucherLog && customer.usedVoucherLog[o.id]);
-}
-function isVoucherLockedForCurrentCart() {
-  const t = getMergeTargetOrder();
-  return !!t && orderAlreadyHasVoucher(t);
-}
-function resetMergeMode() {
-  isMergingOrder = false;
-  document.getElementById('alert-merge-order').style.display = 'none';
-  document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN ĐÚNG';
-  document.getElementById('payment-subtitle').textContent = 'Chọn hình thức thanh toán cho đơn hàng';
-  document.getElementById('payment-options-container').style.display = 'block';
-}
-
 function updateVoucherDropdown() {
   const selectEl = document.getElementById('selected-voucher');
   if(!selectEl) return;
-  const lockNote = document.getElementById('voucher-lock-note');
-  if(isVoucherLockedForCurrentCart()) {
-    selectEl.innerHTML = '<option value="none">-- Không dùng voucher --</option>';
-    selectEl.value = 'none';
-    selectEl.disabled = true;
-    if(lockNote) lockNote.style.display = 'block';
-    return;
-  }
-  selectEl.disabled = false;
-  if(lockNote) lockNote.style.display = 'none';
   const currentVal = selectEl.value;
   // KIỂM SOÁT VOUCHER CHUẨN XÁC: Loại bỏ voucher đã dùng VÀ voucher bị thu hồi
   const validVouchers = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
@@ -1715,7 +1821,7 @@ function calculateFinalTotal() {
   let subtotal = cart.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
   let discount = 0;
   const selectEl = document.getElementById('selected-voucher');
-  const voucherId = (selectEl && !isVoucherLockedForCurrentCart()) ? selectEl.value : 'none';
+  const voucherId = selectEl ? selectEl.value : 'none';
   let appliedVoucherName = 'none';
   if(voucherId !== 'none') {
     const vObj = (customer.vouchers || []).find(v => v.id === voucherId);
@@ -1780,29 +1886,7 @@ function updateQty(idx, delta) {
   renderCartUI(); updateBottomCartBar(); if(cart.length === 0) showScreen('step2-menu');
 }
 function clearCart() { if(confirm('Xóa toàn bộ giỏ hàng?')) { cart = []; renderCartUI(); updateBottomCartBar(); showScreen('step2-menu'); } }
-function notifyCannotOrderNew(blocking) {
-  if(blocking && blocking.status === 'Yêu cầu hủy') {
-    alert("Đơn trước của bạn đang chờ quán xác nhận hủy. Bạn chỉ đặt được đơn mới sau khi quán xử lý xong đơn đó.");
-  } else {
-    alert("Bạn đang có 1 đơn chưa được quán hoàn thành.\n\n• Muốn thêm món: vào Lịch sử → bấm ➕ Gọi Thêm.\n• Muốn dùng voucher khác: hãy đợi đơn này hoàn thành rồi đặt đơn mới.");
-  }
-}
-function goToPayment() {
-  if(cart.length === 0) return;
-  if(!isGuest) {
-    if(isMergingOrder) {
-      const t = getMergeTargetOrder();
-      if(!t || t.status === 'Hoàn thành' || t.status === 'Đã hủy' || t.status === 'Yêu cầu hủy') {
-        alert("Đơn này đã kết thúc hoặc đang yêu cầu hủy nên không thể gọi thêm món nữa.");
-        resetMergeMode(); openHistoryScreen(); return;
-      }
-    } else {
-      const blocking = getBlockingOrder();
-      if(blocking) { notifyCannotOrderNew(blocking); openHistoryScreen(); return; }
-    }
-  }
-  selectPayment('Tiền mặt'); showScreen('step4-payment');
-}
+function goToPayment() { if(cart.length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
 function selectPayment(method) {
   paymentMethod = method;
   document.getElementById('pay-cash').classList.remove('active'); document.getElementById('pay-bank').classList.remove('active');
@@ -1812,18 +1896,6 @@ function selectPayment(method) {
 
 function submitOrder() {
   if(cart.length === 0) return;
-  if(!isGuest) {
-    if(isMergingOrder) {
-      const t = getMergeTargetOrder();
-      if(!t || t.status === 'Hoàn thành' || t.status === 'Đã hủy' || t.status === 'Yêu cầu hủy') {
-        alert("Đơn này đã kết thúc hoặc đang yêu cầu hủy nên không thể gọi thêm món nữa.");
-        resetMergeMode(); openHistoryScreen(); return;
-      }
-    } else {
-      const blocking = getBlockingOrder();
-      if(blocking) { notifyCannotOrderNew(blocking); openHistoryScreen(); return; }
-    }
-  }
   let guestInfo = null;
   if(isGuest) {
     const gName = document.getElementById('guest-name').value.trim();
@@ -1841,9 +1913,6 @@ function submitOrder() {
   const newId = `order_web_${uid()}`;
   const effectiveOrderId = (isMergingOrder && activeOrderId) ? activeOrderId : newId;
   const earnedTicket = (addQty >= 3 && !isGuest);
-  if(!isGuest && isMergingOrder && calc.voucherId !== 'none' && isVoucherLockedForCurrentCart()) {
-    alert("Đơn này đã dùng 1 voucher rồi, mỗi đơn chỉ được dùng 1 voucher!"); renderCartUI(); updateBottomCartBar(); return;
-  }
   const needTx = !isGuest && (earnedTicket || calc.voucherId !== 'none');
   const doSend = () => {
   if(isMergingOrder && activeOrderId && !isGuest) {
@@ -1854,7 +1923,6 @@ function submitOrder() {
         orders[idx].items = (orders[idx].items || []).concat(cart);
         orders[idx].totalQty += addQty;
         orders[idx].totalPrice += calc.finalTotal;
-        if(calc.voucherId !== 'none' && (!orders[idx].appliedVoucher || orders[idx].appliedVoucher === 'none')) orders[idx].appliedVoucher = calc.appliedVoucherName;
         orders[idx].generalNote = (orders[idx].generalNote || '') + " | (Vừa gọi thêm món)";
         return db.ref('meoxam_data/orders').set(orders);
       }
@@ -1909,7 +1977,11 @@ function finalizeSubmit(title, earnedTicket) {
   document.getElementById('success-name').textContent = (isGuest ? (document.getElementById('guest-name').value.trim()) : customer.name) + extraMsg;
   document.getElementById('btn-success-history').style.display = isGuest ? 'none' : '';
   document.getElementById('btn-success-more').style.display = isGuest ? '' : 'none';
-  resetMergeMode();
+  isMergingOrder = false;
+  document.getElementById('alert-merge-order').style.display = 'none';
+  document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN ĐÚNG';
+  document.getElementById('payment-subtitle').textContent = 'Chọn hình thức thanh toán cho đơn hàng';
+  document.getElementById('payment-options-container').style.display = 'block';
   showScreen('step5-success');
   cart = []; updateBottomCartBar();
 }
