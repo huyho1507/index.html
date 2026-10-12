@@ -717,6 +717,11 @@ const FIREBASE_CONFIG = {
 if (!firebase.apps.length) { firebase.initializeApp(FIREBASE_CONFIG); }
 const db = firebase.database();
 
+// ===== Giờ chuẩn từ máy chủ Firebase (chống chỉnh đồng hồ điện thoại để ăn gian vé định kỳ) =====
+let SERVER_TIME_OFFSET = 0;
+db.ref('.info/serverTimeOffset').on('value', snap => { SERVER_TIME_OFFSET = Number(snap.val()) || 0; });
+function serverNow() { return Date.now() + SERVER_TIME_OFFSET; }
+
 const DEFAULT_WHEEL_CONFIG = [
   { name: "Giảm 50%", ratio: 10, discount: 50, color: "#e74c3c" },
   { name: "Chúc may mắn", ratio: 20, discount: 0, color: "#f39c12" },
@@ -744,12 +749,18 @@ function normalizeWheelConfig(raw) {
     list = Object.keys(raw).sort().map(k => raw[k]).filter(Boolean);
   }
   if (list.length === 0) return DEFAULT_WHEEL_CONFIG;
-  return list.map((it, idx) => ({
-    name: it.name || 'Phần thưởng',
-    discount: (it.discount !== undefined) ? Number(it.discount) : Number(it.discountValue || 0),
-    ratio: (it.ratio !== undefined) ? Number(it.ratio) : Number(it.weight || 1),
-    color: it.color || ''
-  }));
+  const safe = list.map((it, idx) => {
+    let r = (it.ratio !== undefined) ? Number(it.ratio) : ((it.weight !== undefined) ? Number(it.weight) : 1);
+    if(!isFinite(r) || r < 0) r = 0; // tỷ lệ 0 = không bao giờ trúng; âm/lỗi cũng coi là 0
+    return Object.freeze({
+      name: String(it.name || 'Phần thưởng'),
+      discount: (it.discount !== undefined) ? Number(it.discount) : Number(it.discountValue || 0),
+      ratio: r,
+      color: it.color || ''
+    });
+  });
+  if(!safe.some(x => x.ratio > 0)) return DEFAULT_WHEEL_CONFIG; // cấu hình hỏng -> dùng mặc định
+  return Object.freeze(safe);
 }
 
 let SHOP_TICKET_CONFIG = { spinRate: 10, rewardAmount: 1, voucherDiscountRate: 5 };
@@ -1109,7 +1120,7 @@ function fetchCustomerData(phone, callback) {
 function startTicketCountdownTimer() {
   if(timerInterval) clearInterval(timerInterval);
   const updateTimer = () => {
-    const now = Date.now();
+    const now = serverNow();
     const timerEl = document.getElementById('banner-timer-text');
     if (!customer.nextFreeTicketTime || customer.nextFreeTicketTime <= now) {
       grantFreeTicketsIfDue();
@@ -1164,7 +1175,7 @@ function doRegister() {
   if(pin !== pin2) return alert("Xác nhận mã PIN không khớp!");
   db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
     if(snap.exists()) { alert("Số điện thoại này đã được đăng ký! Vui lòng chuyển sang Đăng Nhập."); return; }
-    const now = Date.now();
+    const now = serverNow();
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
     const newCustomer = { 
         name: name, 
@@ -1344,15 +1355,23 @@ function applyGuestUI() {
 
 let currentWheelRotation = 0;
 
-function pickWeightedIndex() {
-  const totalRatio = WHEEL_CONFIG.reduce((sum, item) => sum + (Number(item.ratio) || 1), 0);
-  let randomNum = Math.random() * totalRatio;
-  for (let i = 0; i < WHEEL_CONFIG.length; i++) {
-    let r = Number(WHEEL_CONFIG[i].ratio) || 1;
-    if (randomNum < r) return i;
-    randomNum -= r;
+function secureRandom() {
+  try { const a = new Uint32Array(2); crypto.getRandomValues(a); return (a[0] * 4294967296 + a[1]) / 18446744073709551616; }
+  catch(e) { return Math.random(); }
+}
+// Bốc thăm trên bản chụp (snapshot) của cấu hình tại thời điểm quay, trả về cả số đã bốc để ghi nhật ký.
+function pickWeighted(cfg) {
+  const total = cfg.reduce((sum, it) => sum + (Number(it.ratio) > 0 ? Number(it.ratio) : 0), 0);
+  if(total <= 0) return { index: 0, roll: 0, total: 0 };
+  const roll = secureRandom() * total;
+  let acc = roll;
+  for(let i = 0; i < cfg.length; i++) {
+    const r = Number(cfg[i].ratio) > 0 ? Number(cfg[i].ratio) : 0;
+    if(r > 0 && acc < r) return { index: i, roll, total };
+    acc -= r;
   }
-  return 0;
+  for(let i = cfg.length - 1; i >= 0; i--) if(Number(cfg[i].ratio) > 0) return { index: i, roll, total };
+  return { index: 0, roll, total };
 }
 
 const FREE_TICKET_MS = 3 * 24 * 60 * 60 * 1000;
@@ -1468,8 +1487,11 @@ function spinWheel(power) {
   document.getElementById('wheel-center').classList.add('disabled');
   setPowerUI(power);
   resultBox.textContent = power >= 0.85 ? "🔥 Lực cực mạnh! Đang quay..." : "🎡 Đang quay...";
-  const winningIndex = pickWeightedIndex();
-  const wonItem = WHEEL_CONFIG[winningIndex];
+  const cfgSnap = WHEEL_CONFIG.map(x => ({ name: x.name, discount: x.discount, ratio: x.ratio }));
+  const pick = pickWeighted(cfgSnap);
+  const winningIndex = pick.index;
+  const wonItem = cfgSnap[winningIndex];
+  const spinId = uid() + uid();
   const nowStr = new Date(getVNDate()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
   const isLose = !wonItem.name || wonItem.name.toLowerCase().includes("chúc may mắn") || Number(wonItem.discount) === 0;
   const finishSpin = () => {
@@ -1482,12 +1504,21 @@ function spinWheel(power) {
     if(!tk) return false;
     tk.status = 'used';
     if(!isLose) {
-      const nv = { id: uid(), name: wonItem.name, used: false, revoked: false };
+      const nv = { id: uid(), name: wonItem.name, used: false, revoked: false, source: 'spin', spinId: spinId };
       d.vouchers.push(nv);
       tk.voucherId = nv.id;
     }
-    d.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: tk.id, revoked: false });
+    tk.spinId = spinId;
+    d.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: tk.id, spinId: spinId, revoked: false });
   }).then(res => {
+    if(res.committed) {
+      // Nhật ký quay (chỉ thêm, không sửa): để chủ quán đối chiếu khi nghi ngờ gian lận.
+      db.ref('meoxam_data/spinLog/' + spinId).set({
+        phone: customer.loginPhone, result: wonItem.name || 'Chúc may mắn', win: !isLose,
+        roll: Number(pick.roll.toFixed(4)), total: pick.total, index: winningIndex,
+        config: cfgSnap, at: firebase.database.ServerValue.TIMESTAMP
+      }).catch(()=>{});
+    }
     if(!res.committed) {
       finishSpin();
       resultBox.innerHTML = '<span style="color:var(--bad);">🎫 Hết vé rồi!</span>';
@@ -1532,7 +1563,7 @@ function grantFreeTicketsIfDue() {
   if(grantingFreeTicket || !customer.loginPhone) return;
   grantingFreeTicket = true;
   txCustomer(d => {
-    const now = Date.now();
+    const now = serverNow();
     const nf = d.nextFreeTicketTime || 0;
     if(!nf) { d.nextFreeTicketTime = now + FREE_TICKET_MS; return; }
     if(nf > now) return false;
