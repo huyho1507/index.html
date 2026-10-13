@@ -694,7 +694,7 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
 <div class="modal-overlay" id="group-scan-modal">
   <div class="modal-card" style="text-align:center;">
     <h3 style="margin-top:0;">📷 Quét QR tham gia nhóm</h3>
-    <p style="font-size:13px;font-weight:700;color:var(--muted);">Dùng camera để quét mã QR của người tạo đơn nhóm.</p>
+    <p style="font-size:13px;font-weight:700;color:var(--muted);">Không cần đăng nhập. Quét mã QR của chủ nhóm rồi nhập tên để phân biệt món của bạn.</p>
     <div id="group-qr-reader"></div>
     <div class="group-scan-status" id="group-scan-status">Đang chuẩn bị camera…</div>
     <label class="btn outline" style="display:block;margin:8px 0;cursor:pointer;">Chọn ảnh QR từ điện thoại
@@ -1028,7 +1028,7 @@ function updateHeaderCustomerName() {
   }
 }
 
-const CUSTOMER_SESSION_TTL_MS = 2 * 60 * 1000;
+const CUSTOMER_SESSION_TTL_MS = 3 * 1000;
 let customerSessionHeartbeat = null;
 let sessionWasReplaced = false;
 function claimCustomerSession(phone, preferredId) {
@@ -1073,7 +1073,7 @@ function startCustomerSessionHeartbeat() {
     if(!res.committed && current && current.id !== sessionId) forceLogoutReplacedSession();
   }).catch(err => console.error('Lỗi gia hạn phiên đăng nhập:', err));
   heartbeat();
-  customerSessionHeartbeat = setInterval(heartbeat, 30000);
+  customerSessionHeartbeat = setInterval(heartbeat, 1000);
 }
 function releaseCustomerSession() {
   stopCustomerSessionHeartbeat();
@@ -2522,7 +2522,10 @@ function resumeGroupIfPending() {
       joinGroup(gid, customer.name || 'Khách', false);
       return;
     }
-    if(existingKey) { enterGuestMode(true); enterGroup(gid, !!members[existingKey].isHost); return; }
+    if(existingKey) {
+      if(fromUrl) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return; }
+      enterGuestMode(true); enterGroup(gid, !!members[existingKey].isHost); return;
+    }
     // Giữ nguyên luồng khách vãng lai vào nhóm qua link/QR truyền thống.
     groupJoinPendingId = gid;
     let pre = ''; try { const gi = JSON.parse(localStorage.getItem('mx_guest_info') || 'null'); if(gi && gi.name) pre = gi.name; } catch(e) {}
@@ -2532,23 +2535,24 @@ function resumeGroupIfPending() {
   }).catch(e => console.error(e));
 }
 function joinGroup(gid, name, isHost) {
-  const mid = getMemberId(), phone = customer.loginPhone || null;
-  let duplicate = false;
-  return db.ref(`${GROUP_PATH}/${gid}`).transaction(cur => {
-    if(!cur || cur.status !== 'open') return;
-    cur.members = cur.members || {};
-    const already = cur.members[mid] || (phone && Object.values(cur.members).find(m => m && m.phone === phone));
-    if(already) { duplicate = true; return; }
-    cur.members[mid] = { name: name, phone, isHost: !!isHost, joinedAt: serverNow() };
-    return cur;
-  }).then(res => {
-    if(!res.committed) {
-      alert(duplicate ? 'Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.' : 'Đơn nhóm không còn mở hoặc đã kết thúc.');
+  const mid = getMemberId();
+  const phone = customer.loginPhone && !isGuest ? customer.loginPhone : null;
+  return db.ref(`${GROUP_PATH}/${gid}`).once('value').then(snap => {
+    const group = snap.val();
+    if(!group || group.status !== 'open' || (serverNow() - (group.createdAt || 0) >= GROUP_TTL_MS)) {
+      alert('Đơn nhóm không còn mở hoặc đã kết thúc.');
       return false;
     }
-    enterGroup(gid, !!isHost);
-    showScreen('step2-menu');
-    return true;
+    const members = group.members || {};
+    const already = members[mid] || (phone && Object.values(members).find(m => m && m.phone === phone));
+    if(already) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return false; }
+
+    // Ghi đúng nhánh thành viên như luồng Firebase cũ; không transaction toàn nhóm.
+    return db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).update({ name: name, phone: phone || null, isHost: !!isHost, joinedAt: serverNow() }).then(() => {
+      enterGroup(gid, !!isHost);
+      showScreen('step2-menu');
+      return true;
+    });
   }).catch(e => { alert('Không vào được đơn nhóm: ' + e.message); return false; });
 }
 function confirmJoinGroup() {
@@ -2568,11 +2572,6 @@ function cancelJoinGroup() {
 // ----- Quét QR để tham gia (tài khoản đã đăng ký) -----
 let groupQrScanner = null;
 function openGroupQrScanner() {
-  if(!customer.loginPhone || isGuest) {
-    alert('Vui lòng đăng ký hoặc đăng nhập tài khoản khách hàng trước khi tham gia nhóm bằng QR.');
-    goRegisterFromGuest();
-    return;
-  }
   if(groupId) { alert('Bạn đã ở trong một đơn nhóm rồi, không thể tham gia thêm nhóm khác.'); return; }
   const modal = document.getElementById('group-scan-modal');
   modal.style.display = 'flex';
@@ -2626,14 +2625,22 @@ function scanGroupQrImage(file) {
   if(scanner.isScanning) scanner.stop().then(readFile).catch(readFile); else readFile();
 }
 function joinGroupFromQr(gid) {
-  if(!customer.loginPhone || isGuest) { alert('Vui lòng đăng nhập tài khoản khách hàng đã đăng ký để tham gia nhóm.'); return; }
   if(groupId) { alert(groupId === gid ? 'Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.' : 'Bạn đang ở trong một đơn nhóm khác. Vui lòng thoát nhóm hiện tại trước.'); return; }
   db.ref(`${GROUP_PATH}/${gid}`).once('value').then(snap => {
     const g = snap.val();
     if(!g || g.status !== 'open' || (serverNow() - (g.createdAt || 0) >= GROUP_TTL_MS)) { alert('Đơn nhóm này đã kết thúc hoặc không còn tồn tại.'); return; }
     const mid = getMemberId(), members = g.members || {};
-    const exists = members[mid] || Object.values(members).find(m => m && m.phone === customer.loginPhone);
-    if(exists || g.hostId === mid || g.hostPhone === customer.loginPhone) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return; }
+    const exists = members[mid] || (customer.loginPhone && Object.values(members).find(m => m && m.phone === customer.loginPhone));
+    if(exists || (customer.loginPhone && (g.hostId === mid || g.hostPhone === customer.loginPhone))) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return; }
+    if(!customer.loginPhone || isGuest) {
+      groupJoinPendingId = gid;
+      let pre = '';
+      try { const gi = JSON.parse(localStorage.getItem('mx_guest_info') || 'null'); if(gi && gi.name) pre = gi.name; } catch(e) {}
+      document.getElementById('group-join-name').value = pre;
+      document.getElementById('group-join-sub').textContent = `${g.hostName || 'Chủ nhóm'} mời bạn cùng đặt món. Nhập tên để phân biệt món của bạn, không cần đăng ký.`;
+      document.getElementById('group-join-modal').style.display = 'flex';
+      return;
+    }
     joinGroup(gid, customer.name || 'Khách', false);
   }).catch(e => alert('Không đọc được đơn nhóm: ' + e.message));
 }
@@ -2644,7 +2651,7 @@ function renderGroupBar() {
   if(!bar) return;
   if(!groupId) {
     if(isMergingOrder) { bar.innerHTML = ''; return; }
-    bar.innerHTML = `<div class="group-actions-available"><button class="group-start" onclick="startGroupOrder()"><span class="gs-ico">👥</span><span><span class="gs-t">Tạo đơn nhóm</span><span class="gs-s">Chỉ tài khoản đã đăng ký</span></span></button><button class="group-start group-join-start" onclick="openGroupQrScanner()"><span class="gs-ico">📷</span><span><span class="gs-t">Tham gia nhóm</span><span class="gs-s">Quét QR của chủ nhóm</span></span></button></div>`;
+    bar.innerHTML = `<div class="group-actions-available"><button class="group-start" onclick="startGroupOrder()"><span class="gs-ico">👥</span><span><span class="gs-t">Tạo đơn nhóm</span><span class="gs-s">Chỉ tài khoản đã đăng ký</span></span></button><button class="group-start group-join-start" onclick="openGroupQrScanner()"><span class="gs-ico">📷</span><span><span class="gs-t">Tham gia nhóm</span><span class="gs-s">Quét QR · nhập tên, không cần đăng ký</span></span></button></div>`;
     return;
   }
   const n = (groupData && groupData.members) ? Object.keys(groupData.members).length : 1;
