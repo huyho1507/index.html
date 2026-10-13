@@ -570,6 +570,11 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
     <div id="group-member-note" class="group-note" style="display:none;"></div>
     <div class="cart-list" id="cart-list-ui"></div>
     <div id="group-cart-others"></div>
+    <div id="group-member-controls" class="group-note" style="display:none;margin:0 0 14px;">
+      <div id="group-member-status" style="margin-bottom:10px;"></div>
+      <button class="btn success" id="btn-group-member-done" style="width:100%;" onclick="markGroupMemberDone()">✅ HOÀN THÀNH CHỌN MÓN</button>
+      <button class="btn outline" id="btn-group-member-return" style="display:none;width:100%;margin-top:8px;" onclick="exitGroup()">Về đặt món bình thường</button>
+    </div>
     <div class="input-group" id="voucher-box" style="background:#fff9f0; border:2px dashed var(--accent); padding:12px; border-radius:16px; margin-bottom:16px;">
       <label style="color:var(--accent); font-weight:900;">🎟️ CHỌN VOUCHER ÁP DỤNG:</label>
       <select id="selected-voucher" onchange="onVoucherSelectChange()" style="margin-top:4px;"><option value="none">-- Không dùng voucher --</option></select>
@@ -1181,6 +1186,7 @@ db.ref('meoxam_data/products').on('value', snap => {
 db.ref('meoxam_data/orders').on('value', snap => {
   const oldOrders = ALL_ORDERS;
   ALL_ORDERS = snap.val() || [];
+  syncGroupShopOrderStatus();
   if(customer.loginPhone) {
     checkCanceledOrdersAndRevertRewards(oldOrders, ALL_ORDERS);
     processCustomerOrders(customer.loginPhone);
@@ -1525,6 +1531,11 @@ function enterGuestMode(skipTrack) {
 }
 
 function goRegisterFromGuest() {
+  if(groupId && (!groupData || groupData.status !== 'completed')) {
+    alert('Bạn đang trong đơn nhóm. Vui lòng chờ chủ quán đánh dấu Hoàn thành trên app chính rồi mới quay lại đặt món bình thường.');
+    return;
+  }
+  if(groupId && groupData && groupData.status === 'completed') leaveGroupLocal(true, true);
   isGuest = false;
   document.getElementById('wheel-modal').style.display = 'none';
   switchAuthTab('register');
@@ -1898,6 +1909,7 @@ let editCartIdx = -1; // Biến lưu index của món đang sửa trong giỏ h�
 
 // Mở Modal từ Menu
 function openItemModal(id) {
+  if(groupCartLocked()) { alert('Bạn đã xác nhận món hoặc đơn đã gửi quán. Vui lòng chờ chủ quán hoàn thành đơn.'); return; }
   editCartIdx = -1; // Đánh dấu là đang thêm mới
   modalItem = MEOXAM_MENU.find(m => m.id === id);
   if(!modalItem) return;
@@ -1916,6 +1928,7 @@ function openItemModal(id) {
 
 // Mở Modal từ Giỏ hàng (Để sửa hoặc tách ly)
 function openEditCartItem(idx) {
+  if(groupCartLocked()) { alert('Bạn đã xác nhận món, không thể sửa giỏ nhóm nữa.'); return; }
   editCartIdx = idx;
   const item = cart[idx];
   modalItem = MEOXAM_MENU.find(m => m.id === item.prodId);
@@ -1957,6 +1970,7 @@ function closeModal() { document.getElementById('product-modal').style.display =
 
 // Thêm món mới
 function addToCart() {
+  if(groupCartLocked()) { alert('Bạn đã xác nhận món, không thể sửa giỏ nhóm nữa.'); return; }
   if(!modalItem) return;
   const basePrice = modalItem.sizes[modalSelectedSize].price || 0;
   const selTops = []; let topPrice = 0;
@@ -1970,6 +1984,7 @@ function addToCart() {
 
 // Cập nhật lại món trong giỏ hàng
 function updateCartItem() {
+  if(groupCartLocked()) { alert('Bạn đã xác nhận món, không thể sửa giỏ nhóm nữa.'); return; }
   if(editCartIdx === -1) return;
   const item = cart[editCartIdx];
   item.size = modalSelectedSize;
@@ -1990,6 +2005,7 @@ function updateCartItem() {
 
 // Tính năng mới: Tách 1 ly ra khỏi nhóm (nếu qty > 1) để ghi chú riêng
 function splitCartItem() {
+  if(groupCartLocked()) { alert('Bạn đã xác nhận món, không thể sửa giỏ nhóm nữa.'); return; }
   if(editCartIdx === -1) return;
   const item = cart[editCartIdx];
   if(item.qty <= 1) return;
@@ -2081,6 +2097,7 @@ function calculateFinalTotal(billArg) {
 function renderCartUI() {
   updateVoucherDropdown();
   const listUi = document.getElementById('cart-list-ui');
+  const readOnly = groupCartLocked();
   const bill = getBillItems();
   if(bill.length === 0) {
     listUi.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:14px; padding:20px 0;">Chưa có món nào.</p>';
@@ -2096,11 +2113,11 @@ function renderCartUI() {
     const tops = item.toppings.map(t => t.name).join(', ');
     return `
       <div class="cart-item-wrapper">
-        <div class="cart-item-bg-delete" onclick="cart.splice(${idx},1); renderCartUI(); updateBottomCartBar(); if(cart.length===0) showScreen('step2-menu');">🗑 Xóa</div>
+        ${readOnly ? '' : `<div class="cart-item-bg-delete" onclick="cart.splice(${idx},1); renderCartUI(); updateBottomCartBar(); if(cart.length===0) showScreen('step2-menu');">🗑 Xóa</div>`}
         <div class="cart-item-surface" style="transform:translateX(0);">
-          <div class="cart-item-header" onclick="openEditCartItem(${idx})" style="cursor:pointer; user-select:none;">
+          <div class="cart-item-header" onclick="${readOnly ? '' : `openEditCartItem(${idx})`}" style="cursor:${readOnly ? 'default' : 'pointer'}; user-select:none;">
             <div style="display:flex; align-items:center; gap:6px;">
-              ${item.name} (${item.size}) <span style="font-size:11px; background:var(--soft); padding:2px 8px; border-radius:10px; border:1px solid var(--line);">✏️ Sửa</span>${item.voucherFree ? ' <span style="font-size:11px; background:#27ae60; color:#fff; padding:2px 8px; border-radius:10px; font-weight:900;">🎁 FREE</span>' : ''}
+              ${item.name} (${item.size}) ${readOnly ? '<span style="font-size:11px;background:#edf3ef;padding:2px 8px;border-radius:10px;">🔒 Đã chốt</span>' : '<span style="font-size:11px; background:var(--soft); padding:2px 8px; border-radius:10px; border:1px solid var(--line);">✏️ Sửa</span>'}${item.voucherFree ? ' <span style="font-size:11px; background:#27ae60; color:#fff; padding:2px 8px; border-radius:10px; font-weight:900;">🎁 FREE</span>' : ''}
             </div>
             <div style="color:var(--good);">${fmt(item.unitPrice)}đ</div>
           </div>
@@ -2108,7 +2125,7 @@ function renderCartUI() {
           ${item.note ? `<div class="cart-item-sub" style="color:var(--warn);">📝 ${item.note}</div>` : ''}
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
             <div style="font-weight:800; font-size:14px;">Thành tiền: <span style="color:var(--accent);">${fmt(item.unitPrice * item.qty)}đ</span></div>
-            <div class="qty-controls"><div class="qty-btn" onclick="updateQty(${idx}, -1)">-</div><div style="font-weight:900; width:20px; text-align:center;">${item.qty}</div><div class="qty-btn" onclick="updateQty(${idx}, 1)">+</div></div>
+            ${readOnly ? `<div style="font-weight:900;min-width:36px;text-align:center;">${item.qty} ly</div>` : `<div class="qty-controls"><div class="qty-btn" onclick="updateQty(${idx}, -1)">-</div><div style="font-weight:900; width:20px; text-align:center;">${item.qty}</div><div class="qty-btn" onclick="updateQty(${idx}, 1)">+</div></div>`}
           </div>
         </div>
       </div>`;
@@ -2130,6 +2147,7 @@ function renderCartUI() {
   const setX = (el, x, anim) => { el.style.transition = anim ? 'transform .25s ease' : 'none'; el.style.transform = `translateX(${x}px)`; };
   const closeOpen = (except) => { if(openSurface && openSurface !== except){ setX(openSurface, 0, true); openSurface = null; } };
   const deleteWrapper = (wrapper) => {
+    if(groupCartLocked()) return;
     const idx = Array.prototype.indexOf.call(list.children, wrapper);
     if(idx < 0) return;
     const surface = wrapper.querySelector('.cart-item-surface');
@@ -2142,7 +2160,7 @@ function renderCartUI() {
   };
   list.addEventListener('pointerdown', e => {
     const surface = e.target.closest('.cart-item-surface');
-    if(!surface || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    if(groupCartLocked() || !surface || (e.pointerType === 'mouse' && e.button !== 0)) return;
     closeOpen(surface);
     const isOpen = surface === openSurface;
     st = { surface, wrapper: surface.parentElement, id: e.pointerId, x0: e.clientX, y0: e.clientY, base: isOpen ? -OPEN_W : 0, drag: false, x: isOpen ? -OPEN_W : 0, lastX: e.clientX, lastT: performance.now(), vx: 0 };
@@ -2183,12 +2201,18 @@ function renderCartUI() {
 })();
 
 function updateQty(idx, delta) {
+  if(groupCartLocked()) { alert('Bạn đã xác nhận món, không thể sửa giỏ nhóm nữa.'); return; }
   cart[idx].qty += delta;
   if(cart[idx].qty <= 0) { if(confirm('Xóa món này khỏi giỏ?')) cart.splice(idx, 1); else cart[idx].qty = 1; }
   renderCartUI(); updateBottomCartBar(); if(cart.length === 0) showScreen('step2-menu');
 }
-function clearCart() { if(confirm('Xóa toàn bộ giỏ hàng?')) { cart = []; renderCartUI(); updateBottomCartBar(); showScreen('step2-menu'); } }
-function goToPayment() { if(groupId && !groupIsHost) return; if(getBillItems().length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
+function clearCart() { if(groupCartLocked()) { alert('Bạn đã xác nhận món, không thể sửa giỏ nhóm nữa.'); return; } if(confirm('Xóa toàn bộ giỏ hàng?')) { cart = []; renderCartUI(); updateBottomCartBar(); showScreen('step2-menu'); } }
+function goToPayment() {
+  if(groupId && !groupIsHost) return;
+  if(groupId && groupOrderSubmitted) { alert('Đơn nhóm đã gửi quán. Vui lòng chờ chủ quán hoàn thành.'); return; }
+  const pending = groupPendingMembers();
+  if(pending.length) { alert('Chưa thể gửi đơn. Thành viên chưa chốt món: ' + pending.map(m => m.name || 'Khách').join(', ')); return; }
+  if(getBillItems().length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
 function selectPayment(method) {
   paymentMethod = method;
   document.getElementById('pay-cash').classList.remove('active'); document.getElementById('pay-bank').classList.remove('active');
@@ -2198,6 +2222,9 @@ function selectPayment(method) {
 
 function submitOrder() {
   if(groupId && !groupIsHost) return;
+  if(groupId && groupOrderSubmitted) { alert('Đơn nhóm đã gửi quán. Vui lòng chờ chủ quán hoàn thành.'); return; }
+  const pendingGroupMembers = groupPendingMembers();
+  if(pendingGroupMembers.length) { alert('Chưa thể gửi đơn. Thành viên chưa chốt món: ' + pendingGroupMembers.map(m => m.name || 'Khách').join(', ')); return; }
   if(getBillItems().length === 0) return;
   let guestInfo = null;
   if(isGuest) {
@@ -2343,6 +2370,9 @@ const GROUP_PATH = 'meoxam_data/groupCarts';
 const GROUP_TTL_MS = 12 * 60 * 60 * 1000;
 let groupId = null, groupIsHost = false, groupData = null, groupRef = null, groupLastSync = '';
 let pendingGroupId = null, pendingGroupFromUrl = false, groupJoinPendingId = null;
+let groupOrderSubmitted = false;
+let groupCompletionPopupTimer = null;
+const groupCompletionHandledIds = new Set();
 
 function getMemberId() {
   let m = null;
@@ -2394,6 +2424,17 @@ function getGroupOthersItems() {
 function getBillItems() {
   return (groupId && groupIsHost) ? cart.concat(getGroupOthersItems()) : cart;
 }
+function groupCartLocked() {
+  if(!groupId || !groupData) return false;
+  if(groupData.status !== 'open') return true;
+  const mine = groupData.members && groupData.members[getMemberId()];
+  return !!(!groupIsHost && mine && mine.orderDone);
+}
+function groupPendingMembers() {
+  if(!groupId || !groupIsHost || !groupData || groupData.status !== 'open') return [];
+  const members = groupData.members || {};
+  return Object.keys(members).filter(k => members[k] && !members[k].isHost && !members[k].orderDone).map(k => members[k]);
+}
 // Danh sách món để gửi đơn thật (đánh dấu ai gọi món nào trong ghi chú để quán dễ làm)
 function buildOrderItems() {
   if(!(groupId && groupIsHost)) return cart;
@@ -2404,7 +2445,7 @@ function buildOrderItems() {
 }
 
 function syncMyGroupCart(force) {
-  if(!groupId) return;
+  if(!groupId || !groupData || groupData.status !== 'open' || groupOrderSubmitted || groupCartLocked()) return;
   const payload = JSON.stringify(cart, (k, v) => k === 'voucherFree' ? undefined : v);
   if(!force && payload === groupLastSync) return;
   groupLastSync = payload;
@@ -2426,7 +2467,7 @@ function startGroupOrder() {
     const gid = genGroupId();
     db.ref(`${GROUP_PATH}/${gid}`).transaction(cur => {
       if(cur !== null) return;   // mã đã tồn tại -> hủy, tạo mã khác (đảm bảo QR không bao giờ trùng)
-      return { hostId: mid, hostPhone: customer.loginPhone, hostName: myName, status: 'open', createdAt: serverNow(), members: { [mid]: { name: myName, phone: customer.loginPhone, isHost: true, joinedAt: serverNow() } } };
+      return { hostId: mid, hostPhone: customer.loginPhone, hostName: myName, status: 'open', createdAt: serverNow(), members: { [mid]: { name: myName, phone: customer.loginPhone, isHost: true, orderDone: false, joinedAt: serverNow() } } };
     }).then(res => {
       if(!res.committed) return tryCreate(n + 1);
       enterGroup(gid, true);
@@ -2438,26 +2479,75 @@ function startGroupOrder() {
 
 function enterGroup(gid, asHost) {
   if(groupRef) { groupRef.off(); groupRef = null; }
-  groupId = gid; groupIsHost = !!asHost; groupData = null; groupLastSync = '';
+  groupId = gid; groupIsHost = !!asHost; groupData = null; groupLastSync = ''; groupOrderSubmitted = false;
   try { localStorage.setItem('mx_group_id', gid); } catch(e) {}
   groupRef = db.ref(`${GROUP_PATH}/${gid}`);
   groupRef.on('value', onGroupValue);
   renderGroupBar();
-  syncMyGroupCart(true);
   applyGuestUI();
 }
 
 function onGroupValue(snap) {
   if(!groupId) return;
   const val = snap.val();
-  if(!val) { if(!groupIsHost) alert('Đơn nhóm không còn tồn tại.'); leaveGroupLocal(true); return; }
+  if(!val) {
+    const completedBeforeRemoval = groupOrderSubmitted || (groupData && groupData.status === 'completed');
+    if(completedBeforeRemoval) { leaveGroupLocal(true, true); showScreen('step2-menu'); }
+    else { if(!groupIsHost) alert('Đơn nhóm không còn tồn tại.'); leaveGroupLocal(true); }
+    return;
+  }
   if(!groupIsHost && val.status === 'closed') { alert('Chủ nhóm đã kết thúc đặt nhóm. Bạn quay về giao diện bình thường nhé!'); leaveGroupLocal(true); return; }
-  if(!groupIsHost && val.status === 'ordered') { alert('Chủ nhóm đã gửi đơn nhóm cho quán. Cảm ơn bạn đã cùng đặt món! 🧋'); leaveGroupLocal(true); return; }
+  const previousStatus = groupData && groupData.status;
   groupData = val;
+  groupOrderSubmitted = val.status === 'ordered' || val.status === 'completed';
+  if(val.status === 'completed' && previousStatus !== 'completed') scheduleGroupDissolve(groupId);
   renderGroupBar();
+  if(val.status === 'open') {
+    const mine = val.members && val.members[getMemberId()];
+    if(!groupOrderSubmitted && !cart.length && mine && mine.items) cart = Array.isArray(mine.items) ? JSON.parse(JSON.stringify(mine.items)) : Object.values(mine.items);
+    syncMyGroupCart();
+  }
+  syncGroupShopOrderStatus();
   updateBottomCartBar();
   if(document.getElementById('step3-cart').classList.contains('active')) renderCartUI();
   if(document.getElementById('group-qr-modal').style.display === 'flex') renderGroupMemberList();
+}
+
+function showGroupCompletionPopup() {
+  const popup = document.getElementById('group-completion-popup');
+  if(!popup) return;
+  popup.style.display = 'block';
+  if(groupCompletionPopupTimer) clearTimeout(groupCompletionPopupTimer);
+  groupCompletionPopupTimer = setTimeout(() => { popup.style.display = 'none'; }, 2000);
+}
+function closeGroupCompletionPopup() {
+  const popup = document.getElementById('group-completion-popup');
+  if(groupCompletionPopupTimer) clearTimeout(groupCompletionPopupTimer);
+  groupCompletionPopupTimer = null;
+  if(popup) popup.style.display = 'none';
+}
+function scheduleGroupDissolve(id) {
+  if(!id || groupCompletionHandledIds.has(id)) return;
+  groupCompletionHandledIds.add(id);
+  showGroupCompletionPopup();
+  setTimeout(() => {
+    const ref = db.ref(`${GROUP_PATH}/${id}`);
+    ref.once('value').then(snap => {
+      const latest = snap.val();
+      if(!latest || latest.status !== 'completed') return null;
+      return ref.remove();
+    }).catch(e => console.error('Không giải tán được đơn nhóm đã hoàn thành:', e));
+  }, 2000);
+}
+
+function syncGroupShopOrderStatus() {
+  if(!groupId || !groupData || !groupData.orderId || !Array.isArray(ALL_ORDERS)) return;
+  const order = ALL_ORDERS.find(o => o && (o.id === groupData.orderId || o.groupId === groupId));
+  if(!order || !order.status || groupData.status === 'completed') return;
+  if(order.status === groupData.shopOrderStatus) return;
+  const patch = { shopOrderStatus: order.status };
+  if(order.status === 'Hoàn thành') { patch.status = 'completed'; patch.completedAt = serverNow(); }
+  db.ref(`${GROUP_PATH}/${groupId}`).update(patch).catch(e => console.error('Không cập nhật được trạng thái giao đơn nhóm:', e));
 }
 
 // Rời nhóm ở máy này (không ghi gì lên Firebase)
@@ -2465,6 +2555,7 @@ function leaveGroupLocal(clearMyCart, keepScreen) {
   if(groupRef) { groupRef.off(); groupRef = null; }
   groupId = null; groupIsHost = false; groupData = null; groupLastSync = '';
   try { localStorage.removeItem('mx_group_id'); } catch(e) {}
+  groupOrderSubmitted = false;
   document.getElementById('group-qr-modal').style.display = 'none';
   if(clearMyCart) cart = [];
   applyGuestUI();
@@ -2478,6 +2569,19 @@ function leaveGroupLocal(clearMyCart, keepScreen) {
 function exitGroup() {
   if(!groupId) return;
   const gid = groupId, mid = getMemberId();
+  if(groupData && groupData.status === 'completed') {
+    leaveGroupLocal(true);
+    alert('Đơn nhóm đã hoàn thành. Bạn có thể đăng nhập/đăng ký và đặt món bình thường.');
+    return;
+  }
+  if(groupData && groupData.status === 'ordered') {
+    alert('Đơn đã gửi cho quán. Vui lòng chờ quán hoàn thành đơn trên app chính trước khi rời nhóm.');
+    return;
+  }
+  if(!groupIsHost && groupData && groupData.members && groupData.members[mid] && groupData.members[mid].orderDone) {
+    alert('Bạn đã chốt món. Vui lòng chờ chủ nhóm gửi đơn và chủ quán hoàn thành trước khi rời nhóm.');
+    return;
+  }
   if(groupIsHost) {
     if(!confirm('Bạn là chủ nhóm. Thoát sẽ KẾT THÚC đơn nhóm cho tất cả mọi người và mã QR sẽ hết hiệu lực. Tiếp tục?')) return;
     const ref = db.ref(`${GROUP_PATH}/${gid}`);
@@ -2492,18 +2596,19 @@ function exitGroup() {
 }
 function silentExitGroup() {
   if(!groupId) return;
+  if(groupData && (groupData.status === 'ordered' || groupData.status === 'completed')) { leaveGroupLocal(true, true); return; }
   const gid = groupId, mid = getMemberId();
   if(groupIsHost) { const ref = db.ref(`${GROUP_PATH}/${gid}`); ref.update({ status: 'closed', closedAt: serverNow() }).catch(()=>{}); setTimeout(() => ref.remove().catch(()=>{}), 20000); }
   else db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).remove().catch(()=>{});
   leaveGroupLocal(true, true);
 }
-// Chủ nhóm gửi đơn xong -> đóng nhóm, các thành viên được báo
+// Chủ nhóm đã gửi đơn: giữ nhóm mở ở chế độ theo dõi tới khi quán hoàn thành trên app chính.
 function finishGroupAfterOrder() {
   if(!(groupId && groupIsHost)) return;
+  groupOrderSubmitted = true;
   const ref = db.ref(`${GROUP_PATH}/${groupId}`);
-  ref.update({ status: 'ordered', orderedAt: serverNow(), orderId: window._lastOrderId || null }).catch(()=>{});
-  setTimeout(() => ref.remove().catch(()=>{}), 20000);
-  leaveGroupLocal(false, true);
+  ref.update({ status: 'ordered', orderedAt: serverNow(), orderId: window._lastOrderId || null, shopOrderStatus: 'Đang xử lý' })
+    .catch(e => console.error('Không cập nhật được trạng thái đơn nhóm:', e));
 }
 
 // ----- Vào nhóm bằng QR / mở lại trang khi đang trong nhóm -----
@@ -2514,7 +2619,7 @@ function resumeGroupIfPending() {
   db.ref(`${GROUP_PATH}/${gid}`).once('value').then(snap => {
     const g = snap.val(), mid = getMemberId();
     stripGroupFromUrl();
-    const alive = g && g.status === 'open' && (serverNow() - (g.createdAt || 0) < GROUP_TTL_MS);
+    const alive = g && ((g.status === 'ordered' || g.status === 'completed') || (g.status === 'open' && (serverNow() - (g.createdAt || 0) < GROUP_TTL_MS)));
     if(!alive) {
       try { localStorage.removeItem('mx_group_id'); } catch(e) {}
       if(fromUrl) alert('Đơn nhóm này đã kết thúc hoặc không còn tồn tại. Bạn có thể tự đặt món bình thường nhé!');
@@ -2561,7 +2666,7 @@ function joinGroup(gid, name, isHost) {
     if(already) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return false; }
 
     // Ghi đúng nhánh thành viên như luồng Firebase cũ; không transaction toàn nhóm.
-    return db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).update({ name: name, phone: phone || null, isHost: !!isHost, joinedAt: serverNow() }).then(() => {
+    return db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).update({ name: name, phone: phone || null, isHost: !!isHost, orderDone: false, joinedAt: serverNow() }).then(() => {
       enterGroup(gid, !!isHost);
       showScreen('step2-menu');
       return true;
@@ -2669,12 +2774,22 @@ function renderGroupBar() {
   }
   const n = (groupData && groupData.members) ? Object.keys(groupData.members).length : 1;
   const hostName = groupData ? (groupData.hostName || '') : '';
+  const doneCount = groupData && groupData.members ? Object.values(groupData.members).filter(m => m && !m.isHost && m.orderDone).length : 0;
+  const pendingCount = groupData && groupData.members ? Object.values(groupData.members).filter(m => m && !m.isHost && !m.orderDone).length : 0;
+  const groupStatusLine = !groupData
+    ? 'Đang đồng bộ trạng thái nhóm…'
+    : groupData.status === 'completed'
+    ? '✅ Chủ quán đã hoàn thành đơn trên app chính.'
+    : groupData && groupData.status === 'ordered'
+      ? `📨 Đã gửi đơn cho quán · ${escapeHtml(groupData.shopOrderStatus || 'Đang xử lý')} · Vui lòng chờ giao đến bạn.`
+      : `✅ ${doneCount} thành viên đã chốt món${pendingCount ? ` · ⏳ Còn ${pendingCount} người chưa đặt xong` : ' · Đã sẵn sàng gửi quán'}`;
+  const canLeaveGroup = groupData && (groupData.status === 'completed' || (groupIsHost && groupData.status === 'open') || (!groupIsHost && groupData.status === 'open' && !(groupData.members && groupData.members[getMemberId()] && groupData.members[getMemberId()].orderDone)));
   bar.innerHTML = `<div class="group-active">
     <div class="ga-title">👥 ĐANG ĐẶT NHÓM · ${n} người</div>
-    <div class="ga-sub">${groupIsHost ? 'Bạn là chủ nhóm — bạn gửi đơn chung cho quán' : 'Nhóm của ' + escapeHtml(hostName) + ' — chủ nhóm sẽ gửi đơn'}</div>
+    <div class="ga-sub">${groupIsHost ? 'Bạn là chủ nhóm — kiểm tra món từng người và gửi đơn chung' : 'Nhóm của ' + escapeHtml(hostName) + ' — chủ nhóm sẽ gửi đơn'}<br><span style="display:inline-block;margin-top:4px;">${groupStatusLine}</span></div>
     <div class="ga-actions">
-      <button class="ga-btn" onclick="openGroupQr()">📱 Mã QR mời bạn</button>
-      <button class="ga-leave" onclick="exitGroup()">Thoát đặt nhóm</button>
+      ${groupData && groupData.status === 'open' ? '<button class="ga-btn" onclick="openGroupQr()">📱 Mã QR mời bạn</button>' : ''}
+      ${groupData && groupData.status === 'ordered' ? '<span class="ga-leave" style="opacity:.7;cursor:default;">⏳ Đang chờ quán</span>' : canLeaveGroup ? `<button class="ga-leave" onclick="exitGroup()">${groupData && groupData.status === 'completed' ? 'Về đặt món bình thường' : 'Thoát đặt nhóm'}</button>` : ''}
     </div>
   </div>`;
 }
@@ -2693,8 +2808,16 @@ function renderGroupMemberList() {
   const el = document.getElementById('group-member-list');
   if(!el) return;
   const members = (groupData && groupData.members) ? groupData.members : {};
-  const names = Object.keys(members).map(k => (members[k].isHost ? '👑 ' : '• ') + escapeHtml(members[k].name || 'Khách'));
-  el.innerHTML = names.length ? ('Thành viên (' + names.length + '):<br>' + names.join('<br>')) : '';
+  const keys = Object.keys(members);
+  const statusText = m => groupData && groupData.status === 'completed' ? '✅ Quán đã hoàn thành'
+    : groupData && groupData.status === 'ordered' ? '📨 Đã gửi quán'
+    : m.isHost ? '👑 Chủ nhóm · đang tổng hợp'
+    : m.orderDone ? '✅ Đã chốt món' : '⏳ Chưa chốt món';
+  el.innerHTML = keys.length ? `<b>Thành viên (${keys.length}) · trạng thái và món đã chọn</b>${keys.map(k => {
+    const m = members[k] || {}, arr = m.items ? (Array.isArray(m.items) ? m.items : Object.values(m.items)) : [];
+    const items = arr.length ? arr.map(it => `<div style="font-size:12px;margin-top:3px;">${Number(it.qty)||1}× ${escapeHtml(it.name || 'Món')}${it.size ? ' ('+escapeHtml(it.size)+')' : ''}${it.toppings && it.toppings.length ? ' · ' + escapeHtml((Array.isArray(it.toppings) ? it.toppings : Object.values(it.toppings)).map(t => t.name).join(', ')) : ''}${it.note ? ' · 📝 ' + escapeHtml(it.note) : ''}</div>`).join('') : '<div style="font-size:12px;margin-top:3px;color:var(--muted);">Chưa chọn món</div>';
+    return `<div style="padding:8px 0;border-top:1px dashed var(--line);"><b>${m.isHost ? '👑 ' : '👤 '}${escapeHtml(m.name || 'Khách')}</b><div style="font-size:11px;font-weight:800;color:${m.orderDone ? 'var(--good)' : 'var(--warn)'};">${statusText(m)}</div>${items}</div>`;
+  }).join('')}` : '';
 }
 function copyGroupLink() {
   const url = groupShareUrl();
@@ -2702,12 +2825,46 @@ function copyGroupLink() {
   if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done).catch(() => prompt('Sao chép link:', url));
   else prompt('Sao chép link:', url);
 }
+function markGroupMemberDone() {
+  if(!groupId || groupIsHost) return;
+  if(!groupData || groupData.status !== 'open') { alert('Đơn nhóm đã gửi quán hoặc hoàn thành.'); return; }
+  if(!cart.length) { alert('Bạn hãy chọn ít nhất một món trước khi hoàn thành.'); return; }
+  const mid = getMemberId(), member = (groupData.members || {})[mid] || {};
+  if(member.orderDone) { alert('Bạn đã xác nhận xong món rồi. Vui lòng chờ chủ nhóm gửi đơn.'); return; }
+  const items = JSON.parse(JSON.stringify(cart));
+  db.ref(`${GROUP_PATH}/${groupId}/members/${mid}`).update({ name: member.name || currentMemberName(), items, orderDone: true, doneAt: serverNow(), updatedAt: serverNow() })
+    .then(() => { alert('Đã xác nhận xong món của bạn. Chủ nhóm sẽ kiểm tra và gửi đơn cho quán.'); })
+    .catch(e => alert('Không lưu được trạng thái hoàn thành: ' + e.message));
+}
 function renderGroupCartExtras(bill) {
   const box = document.getElementById('group-cart-others');
   const note = document.getElementById('group-member-note');
   const goBtn = document.getElementById('btn-goto-payment');
+  const controls = document.getElementById('group-member-controls');
   if(!box || !note || !goBtn) return;
-  if(!groupId) { box.innerHTML = ''; note.style.display = 'none'; goBtn.style.display = ''; return; }
+  if(!groupId) { box.innerHTML = ''; note.style.display = 'none'; goBtn.style.display = ''; if(controls) controls.style.display = 'none'; return; }
+  if(!groupData) {
+    box.innerHTML = '<div class="group-others">Đang đồng bộ thành viên và món trong nhóm…</div>';
+    note.style.display = 'block'; note.textContent = 'Đang tải trạng thái đơn nhóm…'; goBtn.style.display = 'none';
+    if(controls) { controls.style.display = groupIsHost ? 'none' : 'block'; const status = document.getElementById('group-member-status'); if(status) status.textContent = 'Đang tải dữ liệu nhóm…'; const doneBtn = document.getElementById('btn-group-member-done'); if(doneBtn) doneBtn.disabled = true; }
+    return;
+  }
+  const members = (groupData && groupData.members) || {};
+  const stateText = m => {
+    if(groupData && groupData.status === 'completed') return '✅ Quán đã hoàn thành đơn';
+    if(groupData && groupData.status === 'ordered') return '📨 Đã gửi đơn cho quán';
+    if(m && m.isHost) return '👑 Chủ nhóm · đang tổng hợp';
+    if(m && m.orderDone) return '✅ Đã chốt món';
+    const arr = m && m.items ? (Array.isArray(m.items) ? m.items : Object.values(m.items)) : [];
+    return arr.length ? '🛒 Đang chọn món · chưa chốt' : '⏳ Chưa đặt xong';
+  };
+  const progress = `<div class="group-others"><b style="font-size:13px;">👥 Tiến độ và món theo từng người</b>${Object.keys(members).map(mid => {
+    const m = members[mid] || {}, arr = m.items ? (Array.isArray(m.items) ? m.items : Object.values(m.items)) : [];
+    const qty = arr.reduce((n, it) => n + (Number(it && it.qty) || 1), 0);
+    const who = (m.isHost ? '👑 ' : '👤 ') + escapeHtml(m.name || 'Khách');
+    const count = qty ? ` · ${qty} ly` : ' · chưa có món';
+    return `<div style="padding:7px 0;border-top:1px dashed var(--line);"><b>${who}</b><span style="float:right;font-size:11px;font-weight:800;color:${m.orderDone ? 'var(--good)' : 'var(--warn)'};">${stateText(m)}</span><div style="font-size:12px;color:var(--muted);margin-top:3px;">${arr.length ? arr.map(it => `${Number(it.qty)||1}× ${escapeHtml(it.name || 'Món')}${it.size ? ' ('+escapeHtml(it.size)+')' : ''}`).join(' · ') : 'Chưa có món nào'}${count}</div></div>`;
+  }).join('')}${groupData && (groupData.status === 'ordered' || groupData.status === 'completed') ? `<div style="margin-top:8px;padding:9px;border-radius:10px;background:#edf8ef;color:var(--good);font-weight:800;">${groupData.status === 'completed' ? '✅ Chủ quán đã ấn Hoàn thành trên app chính.' : '📨 Chủ nhóm đã gửi đơn cho quán.'} ${groupData.status === 'completed' ? 'Bạn có thể quay về đặt món bình thường.' : 'Vui lòng chờ đơn được giao đến bạn.'}${groupData.shopOrderStatus && groupData.status === 'ordered' ? `<div style="font-size:12px;margin-top:3px;color:var(--ink);">Trạng thái quán: ${escapeHtml(groupData.shopOrderStatus)}</div>` : ''}</div>` : ''}</div>`;
   const others = groupIsHost ? (bill || []).filter(i => i._fromMember) : getGroupOthersItems();
   const byName = {};
   others.forEach(i => { (byName[i.orderedBy] = byName[i.orderedBy] || []).push(i); });
@@ -2719,14 +2876,37 @@ function renderGroupCartExtras(bill) {
       html += `<div class="go-line"><span>${i.qty}× ${escapeHtml(i.name)} (${escapeHtml(i.size)})${tops ? ' + ' + escapeHtml(tops) : ''}${i.note ? ' · 📝 ' + escapeHtml(i.note) : ''}</span><span>${fmt(i.unitPrice * i.qty)}đ</span></div>`;
     });
   });
-  box.innerHTML = html ? `<div class="group-others"><b style="font-size:13px;">👥 Món của các thành viên khác</b>${html}</div>` : '';
-  const n = (groupData && groupData.members) ? Object.keys(groupData.members).length : 1;
+  box.innerHTML = progress + (html ? `<div class="group-others"><b style="font-size:13px;">👥 Chi tiết món của các thành viên</b>${html}</div>` : '');
+  const n = Object.keys(members).length || 1;
+  const me = members[getMemberId()] || {};
   note.style.display = 'block';
   note.textContent = groupIsHost
-    ? `👥 Đơn nhóm (${n} người): tổng tiền gồm món của tất cả thành viên. Bạn là chủ nhóm nên bạn xác nhận, chọn thanh toán và gửi đơn chung.`
-    : `👥 Bạn đang đặt trong nhóm của ${groupData ? (groupData.hostName || 'chủ nhóm') : 'chủ nhóm'}. Chủ nhóm sẽ thanh toán và gửi đơn chung cho cả nhóm.`;
-  goBtn.style.display = groupIsHost ? '' : 'none';
+    ? `👑 Món của ${groupData.hostName || currentMemberName()} nằm trong giỏ bên dưới. Bảng bên dưới liệt kê từng người, món đã chọn và trạng thái để bạn kiểm tra trước khi gửi đơn chung (${n} người).`
+    : `👥 Bạn: ${me.name || currentMemberName()}. Chủ nhóm ${groupData.hostName || 'sẽ'} kiểm tra món của từng người và gửi đơn chung cho quán.`;
+  goBtn.style.display = groupIsHost && groupData.status === 'open' && !groupOrderSubmitted ? '' : 'none';
+  if(controls) {
+    controls.style.display = groupIsHost ? 'none' : 'block';
+    if(!groupIsHost) {
+      const status = document.getElementById('group-member-status');
+      const doneBtn = document.getElementById('btn-group-member-done');
+      const returnBtn = document.getElementById('btn-group-member-return');
+      const completed = groupData.status === 'completed';
+      const ordered = groupData.status === 'ordered';
+      if(status) status.innerHTML = completed
+        ? '✅ Chủ quán đã hoàn thành đơn trên app chính. Bạn có thể rời nhóm để đăng nhập/đăng ký và đặt món bình thường.'
+        : ordered
+          ? `📨 Đơn đã gửi quán${groupData.shopOrderStatus ? ': ' + escapeHtml(groupData.shopOrderStatus) : ''}. Vui lòng chờ đơn được giao đến bạn.`
+          : (me.orderDone ? '✅ Bạn đã chốt món. Chủ nhóm sẽ kiểm tra và gửi đơn chung.' : 'Chọn xong món rồi bấm nút bên dưới để chủ nhóm biết bạn đã hoàn tất.');
+      if(doneBtn) { doneBtn.style.display = (!ordered && !completed && !me.orderDone) ? '' : 'none'; doneBtn.disabled = !cart.length; doneBtn.textContent = cart.length ? '✅ HOÀN THÀNH CHỌN MÓN' : 'Chọn món trước khi hoàn thành'; }
+      if(returnBtn) returnBtn.style.display = completed ? '' : 'none';
+    }
+  }
+
 }
 </script>
+<div id="group-completion-popup" role="status" aria-live="polite" style="display:none;position:fixed;z-index:20000;top:14px;left:50%;transform:translateX(-50%);width:min(92vw,460px);box-sizing:border-box;padding:14px 42px 14px 16px;border:1px solid #b8dfc3;border-radius:14px;background:#f1fff4;color:#174b2a;box-shadow:0 10px 30px rgba(0,0,0,.22);font-size:14px;line-height:1.45;">
+  <button type="button" aria-label="Đóng thông báo" onclick="closeGroupCompletionPopup()" style="position:absolute;right:8px;top:7px;width:30px;height:30px;border:0;border-radius:50%;background:#e1f3e6;color:#174b2a;font-size:20px;line-height:1;cursor:pointer;">×</button>
+  <b>✅ Đơn đặt nhóm đã được hoàn thành!</b><br>Nhóm Order sẽ được giải tán. Trân trọng cảm ơn quý khách!!!!!!!!
+</div>
 </body>
 </html>
