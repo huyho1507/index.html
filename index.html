@@ -9,6 +9,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
@@ -434,6 +436,50 @@
     from { background-position: 0 0, 0 0, 0 100%, 0 100%, 0 0, 0 0, 100% 0, 100% 0; }
     to   { background-position: 28px 0, 28px 0, -28px 100%, -28px 100%, 0 28px, 0 28px, 100% -28px, 100% -28px; }
   }
+
+/* ===== Ô thông tin quán (cuối menu) ===== */
+.shop-info-card{ display:flex; align-items:center; gap:12px; margin-top:20px; padding:14px 16px; border-radius:24px; text-decoration:none; color:#3b2a00; background:linear-gradient(135deg,#ffe27a,#ffb82e); border:1.5px solid #e49b0f; box-shadow:0 4px 0 rgba(180,110,0,.30),0 12px 26px rgba(255,170,30,.38); cursor:pointer; position:relative; overflow:hidden; -webkit-tap-highlight-color:transparent; }
+.shop-info-card:active{ transform:translateY(2px); box-shadow:0 2px 0 rgba(180,110,0,.30); }
+.shop-info-card::after{ content:''; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent); animation:sicShine 3.2s ease-in-out infinite; }
+@keyframes sicShine{ 0%{ left:-60%; } 55%,100%{ left:130%; } }
+.shop-info-card .sic-pin{ flex:none; width:46px; height:46px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:23px; box-shadow:0 3px 10px rgba(0,0,0,.15); animation:sicBounce 1.8s ease-in-out infinite; }
+@keyframes sicBounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
+.shop-info-card .sic-body{ flex:1; min-width:0; }
+.shop-info-card .sic-name{ display:block; font-weight:900; font-size:15px; letter-spacing:.2px; }
+.shop-info-card .sic-addr{ display:block; font-weight:800; font-size:13px; line-height:1.35; margin-top:2px; }
+.shop-info-card .sic-cta{ display:inline-block; margin-top:6px; font-weight:900; font-size:11.5px; background:rgba(255,255,255,.75); padding:3px 10px; border-radius:99px; }
+body.vip-mode .shop-info-card{ background:linear-gradient(135deg,#ecd8ab,#c4a067 55%,#a07f45); border-color:#d9b97a; color:#1a130b; box-shadow:0 4px 14px rgba(184,147,90,.30); }
+
+/* ===== Đặt món nhóm ===== */
+.group-bar{ margin-bottom:12px; }
+.group-start{ display:flex; align-items:center; gap:10px; width:100%; font-family:inherit; text-align:left; border:1.5px dashed #22a559; background:#effaf3; border-radius:16px; padding:10px 12px; cursor:pointer; color:var(--ink); }
+.group-start .gs-ico{ font-size:22px; flex:none; }
+.group-start .gs-t{ display:block; font-weight:900; font-size:13.5px; }
+.group-start .gs-s{ display:block; font-weight:700; font-size:11px; color:var(--muted); margin-top:1px; }
+.group-actions-available{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.group-actions-available .group-start{min-width:0;padding:9px 10px;}
+.group-actions-available .gs-t{font-size:12.5px;}
+.group-actions-available .gs-s{font-size:10px;line-height:1.25;}
+.group-join-start{border-color:#9a77d5!important;background:#f6f0ff!important;}
+#group-qr-reader{width:100%;max-width:360px;margin:8px auto;overflow:hidden;border-radius:14px;}
+#group-qr-reader video{border-radius:14px;}
+.group-scan-status{font-size:12px;font-weight:700;color:var(--muted);margin:8px 0;}
+.group-active{ background:linear-gradient(135deg,#e8f8ee,#fff8dc); border:1.5px solid #22a559; border-radius:16px; padding:10px 12px; color:var(--ink); }
+.group-active .ga-title{ font-weight:900; font-size:13.5px; }
+.group-active .ga-sub{ font-weight:700; font-size:11.5px; color:var(--muted); margin-top:2px; }
+.group-active .ga-actions{ display:flex; align-items:center; gap:8px; margin-top:8px; }
+.group-active .ga-btn{ flex:1; font-family:inherit; font-weight:800; font-size:12.5px; border:1.5px solid #22a559; background:#fff; color:#166a39; border-radius:12px; padding:8px 10px; cursor:pointer; }
+.group-active .ga-leave{ flex:none; font-family:inherit; font-weight:800; font-size:11.5px; border:none; background:none; color:var(--bad); text-decoration:underline; padding:6px 4px; cursor:pointer; }
+body.vip-mode .group-start, body.vip-mode .group-active{ background:rgba(212,180,131,.08); border-color:rgba(212,180,131,.45); color:#e6cf9f; }
+body.vip-mode .group-active .ga-btn{ background:transparent; color:#e6cf9f; border-color:rgba(212,180,131,.5); }
+body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bfae8a; }
+#group-qr-code{ display:flex; justify-content:center; padding:14px; background:#fff; border-radius:18px; border:1.5px solid #cfe6da; margin:10px auto; width:fit-content; }
+#group-qr-code img, #group-qr-code canvas{ max-width:100%; }
+.group-link-box{ font-size:11.5px; font-weight:700; word-break:break-all; background:var(--soft); border-radius:12px; padding:8px 10px; margin-bottom:10px; user-select:all; }
+.group-others{ border:1.5px dashed #22a559; border-radius:16px; padding:10px 12px; margin-bottom:14px; background:rgba(34,165,89,.06); }
+.group-others .go-name{ font-weight:900; font-size:13px; margin-top:6px; }
+.group-others .go-line{ font-size:12.5px; font-weight:700; display:flex; justify-content:space-between; gap:8px; padding:2px 0; }
+.group-note{ font-size:12.5px; font-weight:800; line-height:1.45; background:#eaf4ed; border:1.5px dashed var(--good); color:var(--good); border-radius:14px; padding:10px 12px; margin-bottom:14px; }
 </style>
 </head>
 <body>
@@ -492,14 +538,25 @@
     </div>
     <div id="vip-status-banner" class="priority-banner"><div class="pb-1">✦ KHÁCH HÀNG PRIORITY ✦</div><div class="pb-2">Cảm ơn bạn đã đồng hành cùng Tiệm Trà Mèo Xám (tổng chi tiêu trên 3 triệu)</div></div>
     <div id="alert-merge-order" style="display:none; background:#eaf4ed; border:2px dashed var(--good); border-radius:14px; padding:10px; margin-bottom:14px; text-align:center; font-size:13px; font-weight:800; color:var(--good);">Đang trong chế độ: GỌI THÊM MÓN VÀO ĐƠN HIỆN TẠI ➕</div>
+    <div class="group-bar" id="group-bar"></div>
     <div class="category-scroll" id="cat-tabs"><p style="font-size:13px; color:var(--muted); padding:10px;">Đang đồng bộ Menu...</p></div>
     <div class="menu-grid" id="menu-grid"></div>
+    <a class="shop-info-card" id="shop-info-card" href="https://maps.app.goo.gl/cZmT1EiqcfYVgSuf8" target="_blank" rel="noopener">
+      <div class="sic-pin">📍</div>
+      <div class="sic-body">
+        <span class="sic-name">Tiệm Trà Mèo Xám</span>
+        <span class="sic-addr">90 Vĩnh Viễn, Phường Vườn Lài (Quận 10 cũ), TPHCM</span>
+        <span class="sic-cta">Bấm để xem đường đi trên Google Maps ›</span>
+      </div>
+    </a>
   </div>
 
   <div class="screen" id="step3-cart">
     <h2>Giỏ hàng của bạn 🛒</h2>
     <p class="subtitle">Vuốt món sang trái để xóa 👈</p>
+    <div id="group-member-note" class="group-note" style="display:none;"></div>
     <div class="cart-list" id="cart-list-ui"></div>
+    <div id="group-cart-others"></div>
     <div class="input-group" id="voucher-box" style="background:#fff9f0; border:2px dashed var(--accent); padding:12px; border-radius:16px; margin-bottom:16px;">
       <label style="color:var(--accent); font-weight:900;">🎟️ CHỌN VOUCHER ÁP DỤNG:</label>
       <select id="selected-voucher" onchange="onVoucherSelectChange()" style="margin-top:4px;"><option value="none">-- Không dùng voucher --</option></select>
@@ -605,6 +662,49 @@
     </div>
     <div class="wheel-panel" id="wheel-panel-bag"><div id="modal-voucher-bag-list">Chưa có voucher nào.</div></div>
     <div class="wheel-panel" id="wheel-panel-hist"><div id="modal-spin-history">Chưa có lượt quay nào.</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="group-qr-modal">
+  <div class="modal-card" style="text-align:center;">
+    <h3 style="margin-top:0;">👥 Đặt món cho nhóm</h3>
+    <p style="font-size:13px; font-weight:700; color:var(--muted); margin:0 0 4px;">Bạn bè quét mã QR này để mở trang đặt món trên trình duyệt và cùng chọn món vào đơn.<br>iPhone có thể dùng Camera để mở liên kết web này; mã chỉ dùng cho nhóm của bạn.</p>
+    <div id="group-qr-code"></div>
+    <div class="group-link-box" id="group-link-text"></div>
+    <div id="group-member-list" style="font-size:12.5px; font-weight:700; margin-bottom:12px;"></div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn outline" style="flex:1;" onclick="copyGroupLink()">📋 Sao chép link</button>
+      <button class="btn" style="flex:1;" onclick="document.getElementById('group-qr-modal').style.display='none'">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="group-join-modal">
+  <div class="modal-card">
+    <h3 style="margin-top:0;">👥 Vào đặt món nhóm</h3>
+    <p style="font-size:13px; font-weight:700; color:var(--muted); margin:0 0 12px;" id="group-join-sub">Bạn được mời cùng chọn món vào đơn nhóm.</p>
+    <div class="input-group"><label>Tên của bạn *</label><input type="text" id="group-join-name" placeholder="VD: Ngọc Ánh"></div>
+    <div style="display:flex; gap:12px; margin-top:16px;">
+      <button class="btn outline" onclick="cancelJoinGroup()">Hủy</button>
+      <button class="btn success" style="flex:2;" onclick="confirmJoinGroup()">VÀO ĐẶT NHÓM</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="group-scan-modal">
+  <div class="modal-card" style="text-align:center;">
+    <h3 style="margin-top:0;">📷 Quét QR tham gia nhóm</h3>
+    <p style="font-size:13px;font-weight:700;color:var(--muted);">Dùng camera để quét mã QR của người tạo đơn nhóm.</p>
+    <div id="group-qr-reader"></div>
+    <div class="group-scan-status" id="group-scan-status">Đang chuẩn bị camera…</div>
+    <label class="btn outline" style="display:block;margin:8px 0;cursor:pointer;">Chọn ảnh QR từ điện thoại
+      <input id="group-qr-image" type="file" accept="image/*" style="display:none;" onchange="scanGroupQrImage(this.files && this.files[0])">
+    </label>
+    <div class="input-group" style="text-align:left;"><label>Dán liên kết hoặc mã nhóm (nếu camera không dùng được)</label><input id="group-qr-manual" type="text" placeholder="Dán link có ?group=... hoặc mã nhóm"></div>
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <button class="btn outline" onclick="closeGroupQrScanner()">Đóng</button>
+      <button class="btn success" style="flex:2;" onclick="joinGroupFromManual()">THAM GIA NHÓM</button>
+    </div>
   </div>
 </div>
 
@@ -717,6 +817,11 @@ const FIREBASE_CONFIG = {
 if (!firebase.apps.length) { firebase.initializeApp(FIREBASE_CONFIG); }
 const db = firebase.database();
 
+// ===== Giờ chuẩn từ máy chủ Firebase (chống chỉnh đồng hồ điện thoại để ăn gian vé định kỳ) =====
+let SERVER_TIME_OFFSET = 0;
+db.ref('.info/serverTimeOffset').on('value', snap => { SERVER_TIME_OFFSET = Number(snap.val()) || 0; });
+function serverNow() { return Date.now() + SERVER_TIME_OFFSET; }
+
 const DEFAULT_WHEEL_CONFIG = [
   { name: "Giảm 50%", ratio: 10, discount: 50, color: "#e74c3c" },
   { name: "Chúc may mắn", ratio: 20, discount: 0, color: "#f39c12" },
@@ -744,12 +849,18 @@ function normalizeWheelConfig(raw) {
     list = Object.keys(raw).sort().map(k => raw[k]).filter(Boolean);
   }
   if (list.length === 0) return DEFAULT_WHEEL_CONFIG;
-  return list.map((it, idx) => ({
-    name: it.name || 'Phần thưởng',
-    discount: (it.discount !== undefined) ? Number(it.discount) : Number(it.discountValue || 0),
-    ratio: (it.ratio !== undefined) ? Number(it.ratio) : Number(it.weight || 1),
-    color: it.color || ''
-  }));
+  const safe = list.map((it, idx) => {
+    let r = (it.ratio !== undefined) ? Number(it.ratio) : ((it.weight !== undefined) ? Number(it.weight) : 1);
+    if(!isFinite(r) || r < 0) r = 0; // tỷ lệ 0 = không bao giờ trúng; âm/lỗi cũng coi là 0
+    return Object.freeze({
+      name: String(it.name || 'Phần thưởng'),
+      discount: (it.discount !== undefined) ? Number(it.discount) : Number(it.discountValue || 0),
+      ratio: r,
+      color: it.color || ''
+    });
+  });
+  if(!safe.some(x => x.ratio > 0)) return DEFAULT_WHEEL_CONFIG; // cấu hình hỏng -> dùng mặc định
+  return Object.freeze(safe);
 }
 
 let SHOP_TICKET_CONFIG = { spinRate: 10, rewardAmount: 1, voucherDiscountRate: 5 };
@@ -917,6 +1028,63 @@ function updateHeaderCustomerName() {
   }
 }
 
+const CUSTOMER_SESSION_TTL_MS = 2 * 60 * 1000;
+let customerSessionHeartbeat = null;
+let sessionWasReplaced = false;
+function claimCustomerSession(phone, preferredId) {
+  const sessionId = preferredId || ('s' + uid() + uid());
+  const ref = db.ref(`meoxam_data/customers/${phone}/loginSession`);
+  return ref.transaction(current => {
+    const now = serverNow();
+    if(current && current.id && current.id !== sessionId && now - Number(current.updatedAt || 0) < CUSTOMER_SESSION_TTL_MS) return;
+    return { id: sessionId, updatedAt: now };
+  }).then(res => res.committed ? sessionId : null);
+}
+function stopCustomerSessionHeartbeat() {
+  if(customerSessionHeartbeat) clearInterval(customerSessionHeartbeat);
+  customerSessionHeartbeat = null;
+}
+function forceLogoutReplacedSession() {
+  if(sessionWasReplaced) return;
+  sessionWasReplaced = true;
+  stopCustomerSessionHeartbeat();
+  if(timerInterval) clearInterval(timerInterval);
+  if(customerRealtimeListener) { customerRealtimeListener.off(); customerRealtimeListener = null; }
+  stopOnlinePresence();
+  if(groupId) leaveGroupLocal(false, true);
+  localStorage.removeItem('mx_active_session');
+  customer = { loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', tickets: 2, ticketLedger: [], vouchers: [], lastLoginTime: 0, nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] };
+  isGuest = false;
+  cart = [];
+  switchAuthTab('login');
+  showScreen('step1-info');
+  alert('Tài khoản khách hàng đang được đăng nhập tại nơi khác, vui lòng đăng xuất trước khi đăng nhập lại.');
+}
+function startCustomerSessionHeartbeat() {
+  stopCustomerSessionHeartbeat();
+  sessionWasReplaced = false;
+  const phone = customer.loginPhone, sessionId = customer.sessionId;
+  if(!phone || !sessionId) return;
+  const heartbeat = () => db.ref(`meoxam_data/customers/${phone}/loginSession`).transaction(current => {
+    if(!current || current.id !== sessionId) return;
+    return { id: sessionId, updatedAt: serverNow() };
+  }).then(res => {
+    const current = res.snapshot && res.snapshot.val();
+    if(!res.committed && current && current.id !== sessionId) forceLogoutReplacedSession();
+  }).catch(err => console.error('Lỗi gia hạn phiên đăng nhập:', err));
+  heartbeat();
+  customerSessionHeartbeat = setInterval(heartbeat, 30000);
+}
+function releaseCustomerSession() {
+  stopCustomerSessionHeartbeat();
+  if(!customer.loginPhone || !customer.sessionId) return Promise.resolve();
+  const phone = customer.loginPhone, sessionId = customer.sessionId;
+  return db.ref(`meoxam_data/customers/${phone}/loginSession`).transaction(current => {
+    if(!current || current.id !== sessionId) return;
+    return null;
+  }).catch(err => console.error('Lỗi kết thúc phiên đăng nhập:', err));
+}
+
 function startOnlinePresence() {
   if(!customer.loginPhone) return;
   if(window.onlineHeartbeatInterval) clearInterval(window.onlineHeartbeatInterval);
@@ -947,6 +1115,7 @@ function startCustomerRealtimeListener() {
   customerRealtimeListener.on('value', snap => {
     const data = snap.val();
     if(!data) return;
+    if(data.loginSession && customer.sessionId && data.loginSession.id !== customer.sessionId) { forceLogoutReplacedSession(); return; }
 
     const remoteLedger = data.ticketLedger || [];
     const localLedgerKey = JSON.stringify((customer.ticketLedger || []).map(t => ({ id: t.id, status: t.status })));
@@ -1055,12 +1224,15 @@ function checkCanceledOrdersAndRevertRewards(oldList, newList) {
 }
 
 window.onload = () => {
+  const urlGid = getUrlGroupId();
+  if(urlGid) { pendingGroupId = urlGid; pendingGroupFromUrl = true; }
+  else { const sg = localStorage.getItem('mx_group_id'); if(sg) pendingGroupId = sg; }
   const activeSession = localStorage.getItem('mx_active_session');
   if(activeSession) {
     try {
       const c = JSON.parse(activeSession);
       if(c && c.loginPhone) {
-        fetchCustomerData(c.loginPhone, () => { showScreen('step2-menu'); });
+        fetchCustomerData(c.loginPhone, () => { showScreen('step2-menu'); resumeGroupIfPending(); }, c.sessionId || null);
         return;
       }
     } catch(e){ localStorage.removeItem('mx_active_session'); }
@@ -1074,42 +1246,52 @@ window.onload = () => {
   document.getElementById('reg-pin').value = '';
   document.getElementById('reg-pin2').value = '';
   showScreen('step1-info');
+  resumeGroupIfPending();
 };
 
-function fetchCustomerData(phone, callback) {
+function fetchCustomerData(phone, callback, preferredSessionId) {
   isGuest = false;
   db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
-    const data = snap.val() || {};
-    const now = Date.now();
-    let nextFree = data.nextFreeTicketTime || 0;
-    customer = {
-      loginPhone: phone, deliveryPhone: data.deliveryPhone || phone,
-      name: data.realName || data.name || '',        // ← đọc cả 2
-      address: data.address || '', pin: data.pin || '',
-      ticketLedger: migrateLegacyTicketsToLedger(data),
-      vouchers: data.vouchers || [], lastLoginTime: now, nextFreeTicketTime: nextFree,
-      usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || []
-    };
-    syncTicketCount();
-    db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime }).catch(err => console.error(err));
-    localStorage.setItem('mx_active_session', JSON.stringify(customer));
-    startCustomerRealtimeListener();
-    startOnlinePresence();
-    updateTicketUI();
-    updateHeaderCustomerName();
-    startTicketCountdownTimer();
-    processCustomerOrders(phone);
-    applyAutomaticVIPTheme();
-    renderCategories();
-    renderMenu();
-    if(callback) callback();
+    const data = snap.val();
+    if(!data) { alert('Tài khoản chưa được đăng ký! Vui lòng đăng ký trước.'); return; }
+    return claimCustomerSession(phone, preferredSessionId).then(sessionId => {
+      if(!sessionId) {
+        localStorage.removeItem('mx_active_session');
+        alert('Tài khoản khách hàng đang được đăng nhập tại nơi khác, vui lòng đăng xuất trước khi đăng nhập lại.');
+        return;
+      }
+      const now = Date.now();
+      customer = {
+        loginPhone: phone, deliveryPhone: data.deliveryPhone || phone,
+        name: data.realName || data.name || '',
+        address: data.address || '', pin: data.pin || '', sessionId,
+        ticketLedger: migrateLegacyTicketsToLedger(data),
+        vouchers: data.vouchers || [], lastLoginTime: now, nextFreeTicketTime: data.nextFreeTicketTime || 0,
+        usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || []
+      };
+      syncTicketCount();
+      if(groupId) groupUpdateMyName();
+      db.ref(`meoxam_data/customers/${phone}`).update({ lastLoginTime: customer.lastLoginTime }).catch(err => console.error(err));
+      localStorage.setItem('mx_active_session', JSON.stringify(customer));
+      startCustomerRealtimeListener();
+      startOnlinePresence();
+      startCustomerSessionHeartbeat();
+      updateTicketUI();
+      updateHeaderCustomerName();
+      startTicketCountdownTimer();
+      processCustomerOrders(phone);
+      applyAutomaticVIPTheme();
+      renderCategories();
+      renderMenu();
+      if(callback) callback();
+    });
   }).catch(err => { alert("Lỗi kết nối: " + err.message); });
 }
 
 function startTicketCountdownTimer() {
   if(timerInterval) clearInterval(timerInterval);
   const updateTimer = () => {
-    const now = Date.now();
+    const now = serverNow();
     const timerEl = document.getElementById('banner-timer-text');
     if (!customer.nextFreeTicketTime || customer.nextFreeTicketTime <= now) {
       grantFreeTicketsIfDue();
@@ -1164,7 +1346,7 @@ function doRegister() {
   if(pin !== pin2) return alert("Xác nhận mã PIN không khớp!");
   db.ref(`meoxam_data/customers/${phone}`).once('value').then(snap => {
     if(snap.exists()) { alert("Số điện thoại này đã được đăng ký! Vui lòng chuyển sang Đăng Nhập."); return; }
-    const now = Date.now();
+    const now = serverNow();
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
     const newCustomer = { 
         name: name, 
@@ -1187,6 +1369,8 @@ function doRegister() {
 function logoutCustomer() {
   if(confirm('Bạn có chắc chắn muốn đăng xuất?')) {
     if(timerInterval) clearInterval(timerInterval);
+    releaseCustomerSession();
+    if(groupId) silentExitGroup();
     stopOnlinePresence();
     if(customerRealtimeListener) { customerRealtimeListener.off(); customerRealtimeListener = null; }
     localStorage.removeItem('mx_active_session');
@@ -1306,8 +1490,8 @@ function trackMenuView() {
   } catch(e) {}
 }
 
-function enterGuestMode() {
-  trackMenuView();
+function enterGuestMode(skipTrack) {
+  if(skipTrack !== true) trackMenuView();
   isGuest = true;
   if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   customer = { loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', tickets: 0, ticketLedger: [], vouchers: [], lastLoginTime: 0, nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] };
@@ -1338,21 +1522,30 @@ function applyGuestUI() {
   const set = (id, show) => { const el = document.getElementById(id); if(el) el.style.display = show ? '' : 'none'; };
   set('lucky-member', !isGuest);
   set('lucky-guest', isGuest);
-  set('voucher-box', !isGuest);
+  set('voucher-box', !isGuest && !(groupId && !groupIsHost));
+  if(groupId && !groupIsHost) { const voucher = document.getElementById('selected-voucher'); if(voucher) voucher.value = 'none'; }
   set('guest-info-box', isGuest);
 }
 
 let currentWheelRotation = 0;
 
-function pickWeightedIndex() {
-  const totalRatio = WHEEL_CONFIG.reduce((sum, item) => sum + (Number(item.ratio) || 1), 0);
-  let randomNum = Math.random() * totalRatio;
-  for (let i = 0; i < WHEEL_CONFIG.length; i++) {
-    let r = Number(WHEEL_CONFIG[i].ratio) || 1;
-    if (randomNum < r) return i;
-    randomNum -= r;
+function secureRandom() {
+  try { const a = new Uint32Array(2); crypto.getRandomValues(a); return (a[0] * 4294967296 + a[1]) / 18446744073709551616; }
+  catch(e) { return Math.random(); }
+}
+// Bốc thăm trên bản chụp (snapshot) của cấu hình tại thời điểm quay, trả về cả số đã bốc để ghi nhật ký.
+function pickWeighted(cfg) {
+  const total = cfg.reduce((sum, it) => sum + (Number(it.ratio) > 0 ? Number(it.ratio) : 0), 0);
+  if(total <= 0) return { index: 0, roll: 0, total: 0 };
+  const roll = secureRandom() * total;
+  let acc = roll;
+  for(let i = 0; i < cfg.length; i++) {
+    const r = Number(cfg[i].ratio) > 0 ? Number(cfg[i].ratio) : 0;
+    if(r > 0 && acc < r) return { index: i, roll, total };
+    acc -= r;
   }
-  return 0;
+  for(let i = cfg.length - 1; i >= 0; i--) if(Number(cfg[i].ratio) > 0) return { index: i, roll, total };
+  return { index: 0, roll, total };
 }
 
 const FREE_TICKET_MS = 3 * 24 * 60 * 60 * 1000;
@@ -1468,8 +1661,11 @@ function spinWheel(power) {
   document.getElementById('wheel-center').classList.add('disabled');
   setPowerUI(power);
   resultBox.textContent = power >= 0.85 ? "🔥 Lực cực mạnh! Đang quay..." : "🎡 Đang quay...";
-  const winningIndex = pickWeightedIndex();
-  const wonItem = WHEEL_CONFIG[winningIndex];
+  const cfgSnap = WHEEL_CONFIG.map(x => ({ name: x.name, discount: x.discount, ratio: x.ratio }));
+  const pick = pickWeighted(cfgSnap);
+  const winningIndex = pick.index;
+  const wonItem = cfgSnap[winningIndex];
+  const spinId = uid() + uid();
   const nowStr = new Date(getVNDate()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
   const isLose = !wonItem.name || wonItem.name.toLowerCase().includes("chúc may mắn") || Number(wonItem.discount) === 0;
   const finishSpin = () => {
@@ -1482,12 +1678,21 @@ function spinWheel(power) {
     if(!tk) return false;
     tk.status = 'used';
     if(!isLose) {
-      const nv = { id: uid(), name: wonItem.name, used: false, revoked: false };
+      const nv = { id: uid(), name: wonItem.name, used: false, revoked: false, source: 'spin', spinId: spinId };
       d.vouchers.push(nv);
       tk.voucherId = nv.id;
     }
-    d.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: tk.id, revoked: false });
+    tk.spinId = spinId;
+    d.spinHistory.push({ time: nowStr, result: wonItem.name || "Chúc may mắn", ticketId: tk.id, spinId: spinId, revoked: false });
   }).then(res => {
+    if(res.committed) {
+      // Nhật ký quay (chỉ thêm, không sửa): để chủ quán đối chiếu khi nghi ngờ gian lận.
+      db.ref('meoxam_data/spinLog/' + spinId).set({
+        phone: customer.loginPhone, result: wonItem.name || 'Chúc may mắn', win: !isLose,
+        roll: Number(pick.roll.toFixed(4)), total: pick.total, index: winningIndex,
+        config: cfgSnap, at: firebase.database.ServerValue.TIMESTAMP
+      }).catch(()=>{});
+    }
     if(!res.committed) {
       finishSpin();
       resultBox.innerHTML = '<span style="color:var(--bad);">🎫 Hết vé rồi!</span>';
@@ -1532,7 +1737,7 @@ function grantFreeTicketsIfDue() {
   if(grantingFreeTicket || !customer.loginPhone) return;
   grantingFreeTicket = true;
   txCustomer(d => {
-    const now = Date.now();
+    const now = serverNow();
     const nf = d.nextFreeTicketTime || 0;
     if(!nf) { d.nextFreeTicketTime = now + FREE_TICKET_MS; return; }
     if(nf > now) return false;
@@ -1554,10 +1759,11 @@ function showScreen(id) {
   const btnProfile = document.getElementById('btn-profile-icon');
   const btnHistory = document.getElementById('btn-history-icon');
   const btnWheel = document.getElementById('btn-wheel-icon');
-  if (id === 'step2-menu' && cart.length > 0) { bottomBar.classList.add('visible'); } else { bottomBar.classList.remove('visible'); }
+  if (id === 'step2-menu' && getBillItems().length > 0) { bottomBar.classList.add('visible'); } else { bottomBar.classList.remove('visible'); }
   if (id === 'step1-info' || id === 'step5-success' || isGuest) { btnProfile.style.display = 'none'; btnHistory.style.display = 'none'; btnWheel.style.display = 'none'; }
   else { btnProfile.style.display = 'flex'; btnHistory.style.display = 'flex'; btnWheel.style.display = 'flex'; }
   applyGuestUI();
+  if(id === 'step2-menu') renderGroupBar();
 }
 
 function goToMenuIfNeeded() {
@@ -1795,9 +2001,11 @@ function splitCartItem() {
 
 function updateBottomCartBar() {
   const bar = document.getElementById('bottom-cart-bar');
-  if(cart.length === 0) { bar.classList.remove('visible'); return; }
-  document.getElementById('bb-qty').textContent = `${cart.reduce((s, i) => s + i.qty, 0)} món đã chọn`;
-  document.getElementById('bb-total').textContent = `${fmt(calculateFinalTotal().finalTotal)}đ`;
+  syncMyGroupCart();
+  const bill = getBillItems();
+  if(bill.length === 0) { bar.classList.remove('visible'); return; }
+  document.getElementById('bb-qty').textContent = `${bill.reduce((s, i) => s + i.qty, 0)} món đã chọn`;
+  document.getElementById('bb-total').textContent = `${fmt(calculateFinalTotal(bill).finalTotal)}đ`;
   bar.classList.add('visible');
 }
 
@@ -1806,6 +2014,8 @@ function updateVoucherDropdown() {
   if(!selectEl) return;
   const currentVal = selectEl.value;
   // KIỂM SOÁT VOUCHER CHUẨN XÁC: Loại bỏ voucher đã dùng VÀ voucher bị thu hồi
+  const isGroupMember = groupId && !groupIsHost;
+  if(isGroupMember) { selectEl.innerHTML = '<option value="none">-- Chỉ chủ nhóm được dùng voucher --</option>'; selectEl.value = 'none'; return; }
   const validVouchers = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
   let html = '<option value="none">-- Không dùng voucher --</option>';
   validVouchers.forEach(v => {
@@ -1815,14 +2025,15 @@ function updateVoucherDropdown() {
   selectEl.value = validVouchers.some(v => v.id === currentVal) ? currentVal : 'none';
 }
 
-function onVoucherSelectChange() { renderCartUI(); updateBottomCartBar(); }
+function onVoucherSelectChange() { if(groupId && !groupIsHost) { const el = document.getElementById('selected-voucher'); if(el) el.value = 'none'; alert('Chỉ người tạo đơn nhóm mới được sử dụng voucher.'); } renderCartUI(); updateBottomCartBar(); }
 
-function calculateFinalTotal() {
-  let subtotal = cart.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
+function calculateFinalTotal(billArg) {
+  const bill = billArg || getBillItems();
+  let subtotal = bill.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
   let discount = 0;
-  cart.forEach(i => { delete i.voucherFree; });
+  bill.forEach(i => { delete i.voucherFree; });
   const selectEl = document.getElementById('selected-voucher');
-  const voucherId = selectEl ? selectEl.value : 'none';
+  const voucherId = (groupId && !groupIsHost) ? 'none' : (selectEl ? selectEl.value : 'none');
   let appliedVoucherName = 'none';
   if(voucherId !== 'none') {
     const vObj = (customer.vouchers || []).find(v => v.id === voucherId);
@@ -1832,29 +2043,18 @@ function calculateFinalTotal() {
       if (nameLower.includes("free") || nameLower.includes("1 ly")) {
         // Ly Free: chọn ly có GIÁ NƯỚC GỐC rẻ nhất trong giỏ (không tính topping) và chỉ miễn phí phần giá nước đó.
         // Dù ly rẻ đó thêm topping làm tổng tiền cao nhất thì vẫn chọn đúng ly này; tiền topping vẫn tính cho khách.
-        if(cart.length > 0) {
+        if(bill.length > 0) {
           const baseOf = i => (i.basePrice !== undefined && i.basePrice !== null) ? Number(i.basePrice) : Number(i.unitPrice);
-          let freeItem = cart[0];
-          cart.forEach(i => {
+          let freeItem = bill[0];
+          bill.forEach(i => {
             if(baseOf(i) < baseOf(freeItem) || (baseOf(i) === baseOf(freeItem) && i.unitPrice < freeItem.unitPrice)) freeItem = i;
           });
           freeItem.voucherFree = true;
           discount = baseOf(freeItem);
         }
       } else {
-        const percentMatch = vObj.name.match(/(\d+(?:[.,]\d+)?)\s*%/);
-        if (percentMatch) {
-          const percent = parseFloat(percentMatch[1].replace(',', '.'));
-          discount = subtotal * (percent / 100);
-        } else {
-          // Voucher giảm theo mệnh giá tiền: "Giảm 10K", "Giảm 5k", "Giảm 10.000đ", "Giảm 10000"
-          const kMatch = vObj.name.match(/(\d+(?:[.,]\d+)?)\s*k\b/i);
-          const fullMatch = vObj.name.match(/(\d{1,3}(?:[.,]\d{3})+|\d{4,})\s*(?:đ|d|vnđ|vnd)?/i);
-          if (kMatch) discount = Math.round(parseFloat(kMatch[1].replace(',', '.')) * 1000);
-          else if (fullMatch) discount = parseInt(fullMatch[1].replace(/[.,]/g, ''), 10);
-        }
-        if (!(discount > 0)) discount = 0;
-        if (discount > subtotal) discount = subtotal;   // không giảm quá tổng tiền
+        const percentMatch = vObj.name.match(/(\d+)\s*%/);
+        if (percentMatch) { const percent = parseInt(percentMatch[1]); discount = subtotal * (percent / 100); }
       }
     }
   }
@@ -1868,14 +2068,17 @@ function calculateFinalTotal() {
 function renderCartUI() {
   updateVoucherDropdown();
   const listUi = document.getElementById('cart-list-ui');
-  if(cart.length === 0) {
+  const bill = getBillItems();
+  if(bill.length === 0) {
     listUi.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:14px; padding:20px 0;">Chưa có món nào.</p>';
     document.getElementById('cart-subtotal').textContent = '0đ';
     document.getElementById('cart-discount-amt').textContent = '-0đ';
     document.getElementById('cart-total-final').textContent = '0đ';
+    renderGroupCartExtras(bill);
     return;
   }
-  const calc = calculateFinalTotal();
+  const calc = calculateFinalTotal(bill);
+  renderGroupCartExtras(bill);
   listUi.innerHTML = cart.map((item, idx) => {
     const tops = item.toppings.map(t => t.name).join(', ');
     return `
@@ -1897,6 +2100,7 @@ function renderCartUI() {
         </div>
       </div>`;
   }).join('');
+  if(cart.length === 0) listUi.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:14px; padding:14px 0;">Bạn chưa chọn món nào.</p>';
   document.getElementById('cart-subtotal').textContent = `${fmt(calc.subtotal)}đ`;
   document.getElementById('cart-discount-amt').textContent = `-${fmt(calc.discount)}đ`;
   document.getElementById('cart-total-final').textContent = `${fmt(calc.finalTotal)}đ`;
@@ -1971,7 +2175,7 @@ function updateQty(idx, delta) {
   renderCartUI(); updateBottomCartBar(); if(cart.length === 0) showScreen('step2-menu');
 }
 function clearCart() { if(confirm('Xóa toàn bộ giỏ hàng?')) { cart = []; renderCartUI(); updateBottomCartBar(); showScreen('step2-menu'); } }
-function goToPayment() { if(cart.length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
+function goToPayment() { if(groupId && !groupIsHost) return; if(getBillItems().length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
 function selectPayment(method) {
   paymentMethod = method;
   document.getElementById('pay-cash').classList.remove('active'); document.getElementById('pay-bank').classList.remove('active');
@@ -1980,7 +2184,8 @@ function selectPayment(method) {
 }
 
 function submitOrder() {
-  if(cart.length === 0) return;
+  if(groupId && !groupIsHost) return;
+  if(getBillItems().length === 0) return;
   let guestInfo = null;
   if(isGuest) {
     const gName = document.getElementById('guest-name').value.trim();
@@ -1992,11 +2197,14 @@ function submitOrder() {
     guestInfo = { name: gName, phone: gPhone, address: gAddr };
     try { localStorage.setItem('mx_guest_info', JSON.stringify(guestInfo)); } catch(e) {}
   }
-  const addQty = cart.reduce((s, i) => s + i.qty, 0);
-  const calc = calculateFinalTotal();
+  const orderItems = buildOrderItems();
+  const addQty = orderItems.reduce((s, i) => s + i.qty, 0);
+  const calc = calculateFinalTotal(orderItems);
+  const groupMemberCount = (groupId && groupData && groupData.members) ? Object.keys(groupData.members).length : 0;
   const now = new Date(getVNDate());
   const newId = `order_web_${uid()}`;
   const effectiveOrderId = (isMergingOrder && activeOrderId) ? activeOrderId : newId;
+  window._lastOrderId = effectiveOrderId;
   const earnedTicket = (addQty >= 3 && !isGuest);
   const needTx = !isGuest && (earnedTicket || calc.voucherId !== 'none');
   const doSend = () => {
@@ -2005,7 +2213,7 @@ function submitOrder() {
       let orders = snap.val() || [];
       let idx = orders.findIndex(o => o.id === activeOrderId);
       if(idx > -1) {
-        orders[idx].items = (orders[idx].items || []).concat(cart);
+        orders[idx].items = (orders[idx].items || []).concat(orderItems);
         orders[idx].totalQty += addQty;
         orders[idx].totalPrice += calc.finalTotal;
         orders[idx].generalNote = (orders[idx].generalNote || '') + " | (Vừa gọi thêm món)";
@@ -2020,11 +2228,12 @@ function submitOrder() {
     const orderData = {
       id: newId, customerPhone: isGuest ? 'guest' : customer.loginPhone, status: 'Đang xử lý', table: tableInfo,
       paymentMethod: paymentMethod, generalNote: isGuest ? "Khách đặt từ Web (không đăng nhập)" : "Khách đặt từ Web",
-      items: cart, totalQty: addQty, totalPrice: calc.finalTotal,
+      items: orderItems, totalQty: addQty, totalPrice: calc.finalTotal,
       appliedVoucher: calc.appliedVoucherName, staffName: "Khách Tự Order",
       dateIso: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
       time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} — ${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`
     };
+    if(groupId && groupIsHost) { orderData.isGroup = true; orderData.groupId = groupId; orderData.generalNote += ` | Đơn nhóm (${groupMemberCount} người)`; }
     if(isGuest) { orderData.isGuest = true; orderData.guestName = guestInfo.name; orderData.guestPhone = guestInfo.phone; orderData.guestAddress = guestInfo.address; }
     db.ref('meoxam_data/orders').once('value').then(snap => {
       let orders = snap.val() || []; orders.unshift(orderData);
@@ -2057,6 +2266,7 @@ function submitOrder() {
 }
 
 function finalizeSubmit(title, earnedTicket) {
+  finishGroupAfterOrder();
   let extraMsg = earnedTicket ? "\n🎁 Chúc mừng bạn nhận thêm 1 Ticket vì đơn hàng có từ 3 món nước trở lên!" : "";
   document.getElementById('success-title').textContent = title;
   document.getElementById('success-name').textContent = (isGuest ? (document.getElementById('guest-name').value.trim()) : customer.name) + extraMsg;
@@ -2109,6 +2319,394 @@ function sendChatMessage() {
   inp.value = '';
 }
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// =====================================================================
+// ===== ĐẶT MÓN NHÓM (share bill bằng QR) ==============================
+// Mỗi nhóm = 1 node riêng meoxam_data/groupCarts/<mã ngẫu nhiên 10 ký tự>.
+// Mỗi thành viên chỉ ghi giỏ của chính mình (members/<memberId>/items) nên không ghi đè nhau.
+// Chủ nhóm thấy tổng hợp món của tất cả và là người gửi đơn chung cho quán.
+// =====================================================================
+const GROUP_PATH = 'meoxam_data/groupCarts';
+const GROUP_TTL_MS = 12 * 60 * 60 * 1000;
+let groupId = null, groupIsHost = false, groupData = null, groupRef = null, groupLastSync = '';
+let pendingGroupId = null, pendingGroupFromUrl = false, groupJoinPendingId = null;
+
+function getMemberId() {
+  let m = null;
+  try { m = localStorage.getItem('mx_group_member'); } catch(e) {}
+  if(!m) { m = 'm' + uid() + uid(); try { localStorage.setItem('mx_group_member', m); } catch(e) {} }
+  return m;
+}
+function genGroupId() {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const a = new Uint32Array(10);
+  try { crypto.getRandomValues(a); } catch(e) { for(let i = 0; i < 10; i++) a[i] = Math.floor(Math.random() * 4294967296); }
+  let s = ''; for(let i = 0; i < 10; i++) s += A[a[i] % A.length];
+  return s;
+}
+function getUrlGroupId() {
+  try { const g = new URLSearchParams(location.search).get('group'); return (g && /^[A-Za-z0-9_-]{6,40}$/.test(g)) ? g : null; } catch(e) { return null; }
+}
+function stripGroupFromUrl() {
+  try { const u = new URL(location.href); if(u.searchParams.has('group')) { u.searchParams.delete('group'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch(e) {}
+}
+function groupShareUrl() {
+  const base = location.href.split('#')[0].split('?')[0];
+  return base + '?group=' + groupId;
+}
+function currentMemberName() {
+  if(customer.loginPhone && customer.name) return customer.name;
+  const gn = document.getElementById('guest-name');
+  if(gn && gn.value.trim()) return gn.value.trim();
+  try { const g = JSON.parse(localStorage.getItem('mx_guest_info') || 'null'); if(g && g.name) return g.name; } catch(e) {}
+  return 'Chủ nhóm';
+}
+
+function getGroupOthersItems() {
+  if(!groupId || !groupData || !groupData.members) return [];
+  const me = getMemberId(), out = [];
+  Object.keys(groupData.members).forEach(mid => {
+    if(mid === me) return;
+    const m = groupData.members[mid] || {};
+    const arr = Array.isArray(m.items) ? m.items : Object.values(m.items || {});
+    arr.forEach(it => {
+      if(!it) return;
+      const tops = it.toppings ? (Array.isArray(it.toppings) ? it.toppings : Object.values(it.toppings)) : [];
+      out.push(Object.assign({}, it, { toppings: tops, note: it.note || '', qty: Number(it.qty) || 1, orderedBy: m.name || 'Khách', _fromMember: mid }));
+    });
+  });
+  return out;
+}
+// Hóa đơn đang xét: chủ nhóm = giỏ của mình + món của các thành viên; còn lại chỉ giỏ của mình
+function getBillItems() {
+  return (groupId && groupIsHost) ? cart.concat(getGroupOthersItems()) : cart;
+}
+// Danh sách món để gửi đơn thật (đánh dấu ai gọi món nào trong ghi chú để quán dễ làm)
+function buildOrderItems() {
+  if(!(groupId && groupIsHost)) return cart;
+  const myName = currentMemberName();
+  const mine = cart.map(i => { const c = JSON.parse(JSON.stringify(i)); c.orderedBy = myName; c.note = (`(${myName}) ` + (c.note || '')).trim(); return c; });
+  const others = getGroupOthersItems().map(i => { const c = Object.assign({}, i); delete c._fromMember; c.note = (`(${c.orderedBy}) ` + (c.note || '')).trim(); return c; });
+  return mine.concat(others);
+}
+
+function syncMyGroupCart(force) {
+  if(!groupId) return;
+  const payload = JSON.stringify(cart, (k, v) => k === 'voucherFree' ? undefined : v);
+  if(!force && payload === groupLastSync) return;
+  groupLastSync = payload;
+  db.ref(`${GROUP_PATH}/${groupId}/members/${getMemberId()}`)
+    .update({ items: cart.length ? JSON.parse(payload) : null, updatedAt: serverNow() })
+    .catch(e => console.error('Lỗi đồng bộ giỏ nhóm:', e));
+}
+function groupUpdateMyName() {
+  if(!groupId || !customer.name) return;
+  db.ref(`${GROUP_PATH}/${groupId}/members/${getMemberId()}`).update({ name: customer.name }).catch(()=>{});
+}
+
+function startGroupOrder() {
+  if(groupId) { openGroupQr(); return; }
+  if(!customer.loginPhone || isGuest) { alert('Vui lòng đăng ký hoặc đăng nhập tài khoản khách hàng trước khi tạo đơn nhóm.'); goRegisterFromGuest(); return; }
+  const mid = getMemberId(), myName = currentMemberName();
+  const tryCreate = (n) => {
+    if(n > 5) { alert('Không tạo được đơn nhóm, vui lòng thử lại!'); return; }
+    const gid = genGroupId();
+    db.ref(`${GROUP_PATH}/${gid}`).transaction(cur => {
+      if(cur !== null) return;   // mã đã tồn tại -> hủy, tạo mã khác (đảm bảo QR không bao giờ trùng)
+      return { hostId: mid, hostPhone: customer.loginPhone, hostName: myName, status: 'open', createdAt: serverNow(), members: { [mid]: { name: myName, phone: customer.loginPhone, isHost: true, joinedAt: serverNow() } } };
+    }).then(res => {
+      if(!res.committed) return tryCreate(n + 1);
+      enterGroup(gid, true);
+      openGroupQr();
+    }).catch(e => alert('Lỗi tạo đơn nhóm: ' + e.message));
+  };
+  tryCreate(1);
+}
+
+function enterGroup(gid, asHost) {
+  if(groupRef) { groupRef.off(); groupRef = null; }
+  groupId = gid; groupIsHost = !!asHost; groupData = null; groupLastSync = '';
+  try { localStorage.setItem('mx_group_id', gid); } catch(e) {}
+  groupRef = db.ref(`${GROUP_PATH}/${gid}`);
+  groupRef.on('value', onGroupValue);
+  renderGroupBar();
+  syncMyGroupCart(true);
+  applyGuestUI();
+}
+
+function onGroupValue(snap) {
+  if(!groupId) return;
+  const val = snap.val();
+  if(!val) { if(!groupIsHost) alert('Đơn nhóm không còn tồn tại.'); leaveGroupLocal(true); return; }
+  if(!groupIsHost && val.status === 'closed') { alert('Chủ nhóm đã kết thúc đặt nhóm. Bạn quay về giao diện bình thường nhé!'); leaveGroupLocal(true); return; }
+  if(!groupIsHost && val.status === 'ordered') { alert('Chủ nhóm đã gửi đơn nhóm cho quán. Cảm ơn bạn đã cùng đặt món! 🧋'); leaveGroupLocal(true); return; }
+  groupData = val;
+  renderGroupBar();
+  updateBottomCartBar();
+  if(document.getElementById('step3-cart').classList.contains('active')) renderCartUI();
+  if(document.getElementById('group-qr-modal').style.display === 'flex') renderGroupMemberList();
+}
+
+// Rời nhóm ở máy này (không ghi gì lên Firebase)
+function leaveGroupLocal(clearMyCart, keepScreen) {
+  if(groupRef) { groupRef.off(); groupRef = null; }
+  groupId = null; groupIsHost = false; groupData = null; groupLastSync = '';
+  try { localStorage.removeItem('mx_group_id'); } catch(e) {}
+  document.getElementById('group-qr-modal').style.display = 'none';
+  if(clearMyCart) cart = [];
+  applyGuestUI();
+  renderGroupBar();
+  renderCartUI();
+  updateBottomCartBar();
+  if(!keepScreen && (document.getElementById('step3-cart').classList.contains('active') || document.getElementById('step4-payment').classList.contains('active'))) showScreen('step2-menu');
+}
+
+// Nút nhỏ "Thoát đặt nhóm"
+function exitGroup() {
+  if(!groupId) return;
+  const gid = groupId, mid = getMemberId();
+  if(groupIsHost) {
+    if(!confirm('Bạn là chủ nhóm. Thoát sẽ KẾT THÚC đơn nhóm cho tất cả mọi người và mã QR sẽ hết hiệu lực. Tiếp tục?')) return;
+    const ref = db.ref(`${GROUP_PATH}/${gid}`);
+    ref.update({ status: 'closed', closedAt: serverNow() }).catch(()=>{});
+    setTimeout(() => ref.remove().catch(()=>{}), 20000);
+    leaveGroupLocal(false);   // chủ nhóm giữ lại món của mình như giỏ bình thường
+  } else {
+    if(!confirm('Thoát đặt nhóm? Các món bạn đã chọn trong nhóm sẽ bị xóa khỏi đơn nhóm.')) return;
+    db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).remove().catch(()=>{});
+    leaveGroupLocal(true);
+  }
+}
+function silentExitGroup() {
+  if(!groupId) return;
+  const gid = groupId, mid = getMemberId();
+  if(groupIsHost) { const ref = db.ref(`${GROUP_PATH}/${gid}`); ref.update({ status: 'closed', closedAt: serverNow() }).catch(()=>{}); setTimeout(() => ref.remove().catch(()=>{}), 20000); }
+  else db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).remove().catch(()=>{});
+  leaveGroupLocal(true, true);
+}
+// Chủ nhóm gửi đơn xong -> đóng nhóm, các thành viên được báo
+function finishGroupAfterOrder() {
+  if(!(groupId && groupIsHost)) return;
+  const ref = db.ref(`${GROUP_PATH}/${groupId}`);
+  ref.update({ status: 'ordered', orderedAt: serverNow(), orderId: window._lastOrderId || null }).catch(()=>{});
+  setTimeout(() => ref.remove().catch(()=>{}), 20000);
+  leaveGroupLocal(false, true);
+}
+
+// ----- Vào nhóm bằng QR / mở lại trang khi đang trong nhóm -----
+function resumeGroupIfPending() {
+  if(!pendingGroupId) return;
+  const gid = pendingGroupId, fromUrl = pendingGroupFromUrl;
+  pendingGroupId = null; pendingGroupFromUrl = false;
+  db.ref(`${GROUP_PATH}/${gid}`).once('value').then(snap => {
+    const g = snap.val(), mid = getMemberId();
+    stripGroupFromUrl();
+    const alive = g && g.status === 'open' && (serverNow() - (g.createdAt || 0) < GROUP_TTL_MS);
+    if(!alive) {
+      try { localStorage.removeItem('mx_group_id'); } catch(e) {}
+      if(fromUrl) alert('Đơn nhóm này đã kết thúc hoặc không còn tồn tại. Bạn có thể tự đặt món bình thường nhé!');
+      return;
+    }
+    const members = g.members || {};
+    const existingKey = Object.keys(members).find(k => k === mid || (customer.loginPhone && members[k] && members[k].phone === customer.loginPhone));
+    const isHost = g.hostId === mid || (customer.loginPhone && g.hostPhone === customer.loginPhone);
+    if(customer.loginPhone) {
+      if(groupId) { alert(groupId === gid ? 'Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.' : 'Bạn đang ở trong một đơn nhóm khác. Vui lòng thoát nhóm hiện tại trước.'); return; }
+      if(existingKey) {
+        if(fromUrl) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return; }
+        enterGroup(gid, isHost || !!members[existingKey].isHost);
+        showScreen('step2-menu');
+        return;
+      }
+      if(isHost) { alert('Bạn là người tạo nhóm này rồi, không thể tham gia lại.'); return; }
+      joinGroup(gid, customer.name || 'Khách', false);
+      return;
+    }
+    if(existingKey) { enterGuestMode(true); enterGroup(gid, !!members[existingKey].isHost); return; }
+    // Giữ nguyên luồng khách vãng lai vào nhóm qua link/QR truyền thống.
+    groupJoinPendingId = gid;
+    let pre = ''; try { const gi = JSON.parse(localStorage.getItem('mx_guest_info') || 'null'); if(gi && gi.name) pre = gi.name; } catch(e) {}
+    document.getElementById('group-join-name').value = pre;
+    document.getElementById('group-join-sub').textContent = `${g.hostName || 'Một người bạn'} mời bạn cùng đặt món cho nhóm. Không cần đăng ký!`;
+    document.getElementById('group-join-modal').style.display = 'flex';
+  }).catch(e => console.error(e));
+}
+function joinGroup(gid, name, isHost) {
+  const mid = getMemberId(), phone = customer.loginPhone || null;
+  let duplicate = false;
+  return db.ref(`${GROUP_PATH}/${gid}`).transaction(cur => {
+    if(!cur || cur.status !== 'open') return;
+    cur.members = cur.members || {};
+    const already = cur.members[mid] || (phone && Object.values(cur.members).find(m => m && m.phone === phone));
+    if(already) { duplicate = true; return; }
+    cur.members[mid] = { name: name, phone, isHost: !!isHost, joinedAt: serverNow() };
+    return cur;
+  }).then(res => {
+    if(!res.committed) {
+      alert(duplicate ? 'Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.' : 'Đơn nhóm không còn mở hoặc đã kết thúc.');
+      return false;
+    }
+    enterGroup(gid, !!isHost);
+    showScreen('step2-menu');
+    return true;
+  }).catch(e => { alert('Không vào được đơn nhóm: ' + e.message); return false; });
+}
+function confirmJoinGroup() {
+  const name = document.getElementById('group-join-name').value.trim();
+  if(!name) { alert('Vui lòng nhập tên của bạn!'); return; }
+  const gid = groupJoinPendingId; groupJoinPendingId = null;
+  document.getElementById('group-join-modal').style.display = 'none';
+  if(!gid) return;
+  enterGuestMode();
+  joinGroup(gid, name, false);
+}
+function cancelJoinGroup() {
+  groupJoinPendingId = null;
+  document.getElementById('group-join-modal').style.display = 'none';
+}
+
+// ----- Quét QR để tham gia (tài khoản đã đăng ký) -----
+let groupQrScanner = null;
+function openGroupQrScanner() {
+  if(!customer.loginPhone || isGuest) {
+    alert('Vui lòng đăng ký hoặc đăng nhập tài khoản khách hàng trước khi tham gia nhóm bằng QR.');
+    goRegisterFromGuest();
+    return;
+  }
+  if(groupId) { alert('Bạn đã ở trong một đơn nhóm rồi, không thể tham gia thêm nhóm khác.'); return; }
+  const modal = document.getElementById('group-scan-modal');
+  modal.style.display = 'flex';
+  document.getElementById('group-scan-status').textContent = 'Đang kết nối camera…';
+  document.getElementById('group-qr-reader').innerHTML = '';
+  if(!window.Html5Qrcode) { document.getElementById('group-scan-status').textContent = 'Không tải được công cụ quét. Hãy chọn ảnh QR hoặc dán liên kết/mã nhóm bên dưới.'; return; }
+  try {
+    groupQrScanner = new Html5Qrcode('group-qr-reader');
+    groupQrScanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, text => handleScannedGroupQr(text), () => {})
+      .then(() => { document.getElementById('group-scan-status').textContent = 'Hướng camera vào mã QR của chủ nhóm.'; })
+      .catch(err => { document.getElementById('group-scan-status').textContent = 'Không mở được camera. Hãy cấp quyền camera, chọn ảnh QR hoặc dán liên kết.'; console.warn(err); });
+  } catch(e) { document.getElementById('group-scan-status').textContent = 'Camera không khả dụng. Hãy chọn ảnh QR hoặc dán liên kết.'; }
+}
+function closeGroupQrScanner() {
+  const scanner = groupQrScanner; groupQrScanner = null;
+  if(scanner && scanner.isScanning) scanner.stop().catch(()=>{});
+  document.getElementById('group-scan-modal').style.display = 'none';
+}
+function extractGroupIdFromQr(text) {
+  const raw = String(text || '').trim();
+  if(/^[A-Za-z0-9_-]{6,40}$/.test(raw)) return raw;
+  try {
+    const u = new URL(raw, location.href);
+    const gid = u.searchParams.get('group');
+    if(gid && /^[A-Za-z0-9_-]{6,40}$/.test(gid)) return gid;
+    const m = u.pathname.match(/(?:group|groups|join)[\/=:]([A-Za-z0-9_-]{6,40})/i);
+    if(m) return m[1];
+  } catch(e) {}
+  return null;
+}
+function handleScannedGroupQr(text) {
+  const gid = extractGroupIdFromQr(text);
+  if(!gid) { document.getElementById('group-scan-status').textContent = 'QR này không chứa liên kết/mã nhóm hợp lệ. Hãy quét QR mời đặt nhóm.'; return; }
+  closeGroupQrScanner();
+  joinGroupFromQr(gid);
+}
+function joinGroupFromManual() {
+  const text = document.getElementById('group-qr-manual').value.trim();
+  const gid = extractGroupIdFromQr(text);
+  if(!gid) { alert('Liên kết hoặc mã nhóm không hợp lệ.'); return; }
+  closeGroupQrScanner();
+  joinGroupFromQr(gid);
+}
+function scanGroupQrImage(file) {
+  if(!file) return;
+  if(!window.Html5Qrcode) { alert('Công cụ đọc ảnh QR chưa tải được. Vui lòng dán liên kết/mã nhóm.'); return; }
+  const scanner = groupQrScanner || new Html5Qrcode('group-qr-reader');
+  const readFile = () => scanner.scanFile(file, true).then(text => handleScannedGroupQr(text)).catch(() => {
+    document.getElementById('group-scan-status').textContent = 'Không đọc được mã QR trong ảnh. Thử chụp rõ hơn hoặc dán liên kết.';
+  });
+  if(scanner.isScanning) scanner.stop().then(readFile).catch(readFile); else readFile();
+}
+function joinGroupFromQr(gid) {
+  if(!customer.loginPhone || isGuest) { alert('Vui lòng đăng nhập tài khoản khách hàng đã đăng ký để tham gia nhóm.'); return; }
+  if(groupId) { alert(groupId === gid ? 'Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.' : 'Bạn đang ở trong một đơn nhóm khác. Vui lòng thoát nhóm hiện tại trước.'); return; }
+  db.ref(`${GROUP_PATH}/${gid}`).once('value').then(snap => {
+    const g = snap.val();
+    if(!g || g.status !== 'open' || (serverNow() - (g.createdAt || 0) >= GROUP_TTL_MS)) { alert('Đơn nhóm này đã kết thúc hoặc không còn tồn tại.'); return; }
+    const mid = getMemberId(), members = g.members || {};
+    const exists = members[mid] || Object.values(members).find(m => m && m.phone === customer.loginPhone);
+    if(exists || g.hostId === mid || g.hostPhone === customer.loginPhone) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return; }
+    joinGroup(gid, customer.name || 'Khách', false);
+  }).catch(e => alert('Không đọc được đơn nhóm: ' + e.message));
+}
+
+// ----- Giao diện -----
+function renderGroupBar() {
+  const bar = document.getElementById('group-bar');
+  if(!bar) return;
+  if(!groupId) {
+    if(isMergingOrder) { bar.innerHTML = ''; return; }
+    bar.innerHTML = `<div class="group-actions-available"><button class="group-start" onclick="startGroupOrder()"><span class="gs-ico">👥</span><span><span class="gs-t">Tạo đơn nhóm</span><span class="gs-s">Chỉ tài khoản đã đăng ký</span></span></button><button class="group-start group-join-start" onclick="openGroupQrScanner()"><span class="gs-ico">📷</span><span><span class="gs-t">Tham gia nhóm</span><span class="gs-s">Quét QR của chủ nhóm</span></span></button></div>`;
+    return;
+  }
+  const n = (groupData && groupData.members) ? Object.keys(groupData.members).length : 1;
+  const hostName = groupData ? (groupData.hostName || '') : '';
+  bar.innerHTML = `<div class="group-active">
+    <div class="ga-title">👥 ĐANG ĐẶT NHÓM · ${n} người</div>
+    <div class="ga-sub">${groupIsHost ? 'Bạn là chủ nhóm — bạn gửi đơn chung cho quán' : 'Nhóm của ' + escapeHtml(hostName) + ' — chủ nhóm sẽ gửi đơn'}</div>
+    <div class="ga-actions">
+      <button class="ga-btn" onclick="openGroupQr()">📱 Mã QR mời bạn</button>
+      <button class="ga-leave" onclick="exitGroup()">Thoát đặt nhóm</button>
+    </div>
+  </div>`;
+}
+function openGroupQr() {
+  if(!groupId) return;
+  const url = groupShareUrl();
+  const box = document.getElementById('group-qr-code');
+  box.innerHTML = '';
+  try { new QRCode(box, { text: url, width: 210, height: 210, correctLevel: QRCode.CorrectLevel.M }); }
+  catch(e) { box.textContent = 'Không tạo được QR, hãy gửi link bên dưới cho bạn bè.'; }
+  document.getElementById('group-link-text').innerHTML = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(url)}</a>`;
+  renderGroupMemberList();
+  document.getElementById('group-qr-modal').style.display = 'flex';
+}
+function renderGroupMemberList() {
+  const el = document.getElementById('group-member-list');
+  if(!el) return;
+  const members = (groupData && groupData.members) ? groupData.members : {};
+  const names = Object.keys(members).map(k => (members[k].isHost ? '👑 ' : '• ') + escapeHtml(members[k].name || 'Khách'));
+  el.innerHTML = names.length ? ('Thành viên (' + names.length + '):<br>' + names.join('<br>')) : '';
+}
+function copyGroupLink() {
+  const url = groupShareUrl();
+  const done = () => alert('Đã sao chép link đặt nhóm!');
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done).catch(() => prompt('Sao chép link:', url));
+  else prompt('Sao chép link:', url);
+}
+function renderGroupCartExtras(bill) {
+  const box = document.getElementById('group-cart-others');
+  const note = document.getElementById('group-member-note');
+  const goBtn = document.getElementById('btn-goto-payment');
+  if(!box || !note || !goBtn) return;
+  if(!groupId) { box.innerHTML = ''; note.style.display = 'none'; goBtn.style.display = ''; return; }
+  const others = groupIsHost ? (bill || []).filter(i => i._fromMember) : getGroupOthersItems();
+  const byName = {};
+  others.forEach(i => { (byName[i.orderedBy] = byName[i.orderedBy] || []).push(i); });
+  let html = '';
+  Object.keys(byName).forEach(name => {
+    html += `<div class="go-name">👤 ${escapeHtml(name)}</div>`;
+    byName[name].forEach(i => {
+      const tops = (i.toppings || []).map(t => t.name).join(', ');
+      html += `<div class="go-line"><span>${i.qty}× ${escapeHtml(i.name)} (${escapeHtml(i.size)})${tops ? ' + ' + escapeHtml(tops) : ''}${i.note ? ' · 📝 ' + escapeHtml(i.note) : ''}</span><span>${fmt(i.unitPrice * i.qty)}đ</span></div>`;
+    });
+  });
+  box.innerHTML = html ? `<div class="group-others"><b style="font-size:13px;">👥 Món của các thành viên khác</b>${html}</div>` : '';
+  const n = (groupData && groupData.members) ? Object.keys(groupData.members).length : 1;
+  note.style.display = 'block';
+  note.textContent = groupIsHost
+    ? `👥 Đơn nhóm (${n} người): tổng tiền gồm món của tất cả thành viên. Bạn là chủ nhóm nên bạn xác nhận, chọn thanh toán và gửi đơn chung.`
+    : `👥 Bạn đang đặt trong nhóm của ${groupData ? (groupData.hostName || 'chủ nhóm') : 'chủ nhóm'}. Chủ nhóm sẽ thanh toán và gửi đơn chung cho cả nhóm.`;
+  goBtn.style.display = groupIsHost ? '' : 'none';
+}
 </script>
 </body>
 </html>
