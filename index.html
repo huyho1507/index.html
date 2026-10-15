@@ -707,6 +707,15 @@ body.vip-mode .wf-prize{ background:#d4b483; color:#1a1408; }
           <b style="color:var(--accent); font-size:15px;">👑 Hạng: <span id="prof-tier-text">Khách hàng Priority</span></b>
         </div>
       </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:18px; padding:14px; border:1.5px solid var(--line); border-radius:14px; background:var(--soft);">
+        <div style="min-width:0;">
+          <b style="display:block; color:var(--ink); font-size:14px;">🔔 Thông báo trúng voucher của tôi</b>
+          <span style="display:block; margin-top:4px; color:var(--muted); font-size:12px; line-height:1.5;">Tắt để lượt trúng của tài khoản này không xuất hiện trên bảng chung. Bảng và thông báo của khách khác vẫn hiển thị; voucher của bạn vẫn được lưu bình thường.</span>
+        </div>
+        <label for="prof-win-notifications" style="display:flex; align-items:center; flex:0 0 auto; cursor:pointer;">
+          <input type="checkbox" id="prof-win-notifications" onchange="setWinNotificationPreference(this.checked)" aria-label="Bật hoặc tắt thông báo trúng voucher" style="width:24px; height:24px; accent-color:var(--good); cursor:pointer;">
+        </label>
+      </div>
       <div style="display:flex; gap:10px; margin-top:20px;">
         <button class="btn outline" style="flex:1;" onclick="openEditProfileModal()">Cập nhật / Đổi PIN</button>
         <button class="btn danger outline" style="flex:1;" onclick="logoutCustomer()">Đăng xuất</button>
@@ -883,7 +892,7 @@ let isSpinning = false;
 let customer = { 
   loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', 
   tickets: 2, ticketLedger: [], vouchers: [], lastLoginTime: 0, 
-  nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] 
+  nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [], winNotificationsEnabled: true 
 };
 
 function syncTicketCount() {
@@ -1234,6 +1243,10 @@ function startCustomerRealtimeListener() {
     if(!data) return;
     if(data.loginSession && customer.sessionId && data.loginSession.id !== customer.sessionId) { forceLogoutReplacedSession(); return; }
 
+    customer.winNotificationsEnabled = data.winNotificationsEnabled !== false;
+    const winNotificationToggle = document.getElementById('prof-win-notifications');
+    if(winNotificationToggle) winNotificationToggle.checked = customer.winNotificationsEnabled;
+    renderWinFeed();
     const remoteLedger = data.ticketLedger || [];
     const localLedgerKey = JSON.stringify((customer.ticketLedger || []).map(t => ({ id: t.id, status: t.status })));
     const remoteLedgerKey = JSON.stringify(remoteLedger.map(t => ({ id: t.id, status: t.status })));
@@ -1385,7 +1398,8 @@ function fetchCustomerData(phone, callback, preferredSessionId) {
         address: data.address || '', pin: data.pin || '', sessionId,
         ticketLedger: migrateLegacyTicketsToLedger(data),
         vouchers: data.vouchers || [], lastLoginTime: now, nextFreeTicketTime: data.nextFreeTicketTime || 0,
-        usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || []
+        usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || [],
+        winNotificationsEnabled: data.winNotificationsEnabled !== false
       };
       syncTicketCount();
       if(groupId) groupUpdateMyName();
@@ -1475,7 +1489,7 @@ function doRegister() {
         { id: uid(), source: 'signup', sourceOrderId: null, status: 'unused', voucherId: null }
       ],
       vouchers: [], lastLoginTime: now, nextFreeTicketTime: now + THREE_DAYS_MS,
-      usedVoucherLog: {}, spinHistory: []
+      usedVoucherLog: {}, spinHistory: [], winNotificationsEnabled: true
     };
     db.ref(`meoxam_data/customers/${phone}`).set(newCustomer).then(() => {
       alert("Đăng ký thành công! Bạn nhận được 2 Ticket miễn phí.");
@@ -1895,7 +1909,7 @@ function spinWheel(power) {
         roll: Number(pick.roll.toFixed(4)), total: pick.total, index: winningIndex,
         config: cfgSnap, at: firebase.database.ServerValue.TIMESTAMP
       }).catch(()=>{});
-      if(!isLose) {
+      if(!isLose && customer.winNotificationsEnabled !== false) {
         const wk = String(Math.round(serverNow())).padStart(13, '0') + '_' + spinId;
         _hiddenWinKey = wk;   // không "lộ" kết quả trước khi vòng quay dừng
         db.ref(WINFEED_PATH + '/' + wk).set({ name: customer.name || 'Khách', p4: String(customer.loginPhone || '').slice(-4), result: wonItem.name, at: firebase.database.ServerValue.TIMESTAMP }).catch(()=>{});
@@ -2002,7 +2016,22 @@ function openProfileScreen() {
   document.getElementById('prof-phone').textContent = customer.deliveryPhone;
   document.getElementById('prof-address').textContent = customer.address;
   document.getElementById('prof-ticket-count').textContent = customer.tickets || 0;
+  const winNotificationToggle = document.getElementById('prof-win-notifications');
+  if(winNotificationToggle) winNotificationToggle.checked = customer.winNotificationsEnabled !== false;
   showScreen('step7-profile');
+}
+function setWinNotificationPreference(enabled) {
+  if(!customer.loginPhone || isGuest) return;
+  const toggle = document.getElementById('prof-win-notifications');
+  const value = enabled === true;
+  db.ref(`meoxam_data/customers/${customer.loginPhone}`).update({ winNotificationsEnabled: value }).then(() => {
+    customer.winNotificationsEnabled = value;
+    try { localStorage.setItem('mx_active_session', JSON.stringify(customer)); } catch(e) {}
+    renderWinFeed();
+  }).catch(err => {
+    if(toggle) toggle.checked = customer.winNotificationsEnabled !== false;
+    alert('Không lưu được cài đặt thông báo: ' + err.message);
+  });
 }
 
 function openHistoryScreen() { renderHistoryUI(); showScreen('step6-history'); }
