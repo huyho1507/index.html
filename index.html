@@ -1702,7 +1702,7 @@ function spinWheel(power) {
     if(!tk) return false;
     tk.status = 'used';
     if(!isLose) {
-      const nv = { id: uid(), name: wonItem.name, used: false, revoked: false, source: 'spin', spinId: spinId };
+      const nv = { id: uid(), name: wonItem.name, discountValue: Number(wonItem.discount) || 0, used: false, revoked: false, source: 'spin', spinId: spinId };
       d.vouchers.push(nv);
       tk.voucherId = nv.id;
     }
@@ -2056,6 +2056,28 @@ function updateVoucherDropdown() {
 
 function onVoucherSelectChange() { if(groupId && !groupIsHost) { const el = document.getElementById('selected-voucher'); if(el) el.value = 'none'; alert('Chỉ người tạo đơn nhóm mới được sử dụng voucher.'); } renderCartUI(); updateBottomCartBar(); }
 
+function parseVoucherCashDiscount(voucher) {
+  if(!voucher) return 0;
+  const name = String(voucher.name || '').toLowerCase();
+  const parseLocalizedAmount = raw => {
+    const value = String(raw || '').replace(/\s/g, '');
+    if(!value) return 0;
+    if(/[.,]\d{3}$/.test(value)) return Number(value.replace(/[.,]/g, '')) || 0;
+    return Number(value.replace(',', '.')) || 0;
+  };
+  const kMatch = name.match(/(\d+(?:[.,]\d+)?)\s*(?:k|nghìn|ngàn)(?=\s|đ|₫|vnd|$)/i);
+  if(kMatch) return Math.round(parseLocalizedAmount(kMatch[1]) * 1000);
+  const currencyMatch = name.match(/(\d{1,3}(?:[.,]\d{3})+|\d+)\s*(?:đồng|dong|vnd|đ|₫)(?=\s|$)/i);
+  if(currencyMatch) return Math.round(parseLocalizedAmount(currencyMatch[1]));
+  const labelledAmountMatch = name.match(/(?:giảm|discount|voucher)\s*(?:tiền mặt\s*)?(\d{1,3}(?:[.,]\d{3})+|\d{4,})(?!\s*%)/i);
+  if(labelledAmountMatch) return Math.round(parseLocalizedAmount(labelledAmountMatch[1]));
+  const configured = Number(voucher.discountValue ?? voucher.cashDiscount ?? voucher.discount ?? voucher.amount);
+  if(!Number.isFinite(configured) || configured <= 0) return 0;
+  // Một số cấu hình cũ lưu 5/10 và ghi rõ đây là voucher giảm tiền mặt (tương ứng 5k/10k).
+  if(configured < 1000 && /tiền mặt|cash/.test(name) && Number.isInteger(configured)) return configured * 1000;
+  return Math.round(configured);
+}
+
 function calculateFinalTotal(billArg) {
   const bill = billArg || getBillItems();
   let subtotal = bill.reduce((s, i) => s + (i.unitPrice * i.qty), 0);
@@ -2083,7 +2105,8 @@ function calculateFinalTotal(billArg) {
         }
       } else {
         const percentMatch = vObj.name.match(/(\d+)\s*%/);
-        if (percentMatch) { const percent = parseInt(percentMatch[1]); discount = subtotal * (percent / 100); }
+        if (percentMatch) { const percent = parseInt(percentMatch[1]); discount = Math.min(subtotal, subtotal * (percent / 100)); }
+        else { discount = Math.min(subtotal, parseVoucherCashDiscount(vObj)); }
       }
     }
   }
