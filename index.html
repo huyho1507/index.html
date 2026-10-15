@@ -480,6 +480,65 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
 .group-others .go-name{ font-weight:900; font-size:13px; margin-top:6px; }
 .group-others .go-line{ font-size:12.5px; font-weight:700; display:flex; justify-content:space-between; gap:8px; padding:2px 0; }
 .group-note{ font-size:12.5px; font-weight:800; line-height:1.45; background:#eaf4ed; border:1.5px dashed var(--good); color:var(--good); border-radius:14px; padding:10px 12px; margin-bottom:14px; }
+
+/* ===== v11: vòng quay đẹp hơn + ô tròn Voucher ===== */
+.wheel-container{ filter:drop-shadow(0 6px 10px rgba(80,30,0,.28)); }
+.wheel-rim{ position:absolute; inset:0; width:100%; height:100%; z-index:2; pointer-events:none; }
+.wheel-rim .bulb{ fill:#fff4b8; }
+.wheel-rim .bulb.b1{ animation:rimBlink 1.1s steps(1,end) infinite; }
+.wheel-rim .bulb.b2{ animation:rimBlink 1.1s steps(1,end) infinite .55s; }
+@keyframes rimBlink{ 0%{opacity:1} 50%{opacity:.28} 100%{opacity:1} }
+.wheel{ position:absolute; top:6%; left:6%; width:88%; height:88%; border:2px solid #6b1a24; box-shadow:inset 0 0 12px rgba(0,0,0,.25); z-index:3; }
+.wheel-pin{ top:-17px; width:36px; height:44px; border:0; background:none; filter:drop-shadow(0 3px 3px rgba(0,0,0,.45)); }
+.wheel-pin svg{ display:block; width:100%; height:100%; }
+.wheel-center{ z-index:20; border:4px solid #e0a526; background:radial-gradient(circle at 50% 35%,#fff 0%,#fff3d6 100%); box-shadow:0 0 0 3px #7b1e2b, 0 3px 10px rgba(0,0,0,.35); }
+#btn-voucher-icon{ position:relative; }
+.vc-badge{ position:absolute; top:-5px; right:-5px; min-width:17px; height:17px; padding:0 4px; box-sizing:border-box; border-radius:99px; background:var(--bad); color:#fff; font-size:10px; font-weight:900; display:none; align-items:center; justify-content:center; border:1.5px solid #fff; line-height:1; }
+@media (min-width:381px) and (max-width:430px){ .header-actions{ gap:6px; } .btn-header-icon{ width:35px; height:35px; font-size:15px; } }
+.vc-tabs{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0 10px; }
+.vc-tab{ font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 4px 9px; border:1.5px solid var(--line); border-radius:18px; background:var(--soft); color:var(--ink); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.vc-tab .vc-ti{ font-size:22px; line-height:1; }
+.vc-tab b{ font-size:12.5px; font-weight:900; }
+.vc-tab small{ font-size:11px; font-weight:800; color:var(--muted); background:#fff; border:1px solid var(--line); border-radius:99px; padding:1px 9px; min-width:20px; box-sizing:border-box; }
+.vc-tab.active{ border-color:var(--purple); background:#f6effa; color:var(--purple); box-shadow:0 2px 8px rgba(142,68,173,.22); }
+.vc-tab.active small{ background:var(--purple); color:#fff; border-color:var(--purple); }
+.vc-list{ text-align:left; background:#fdfbf7; border:1.5px dashed var(--line); border-radius:16px; padding:6px 10px; min-height:96px; max-height:min(44vh,300px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.vc-item{ display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px dashed #d9d2bf; font-weight:800; font-size:14px; color:var(--ink); }
+.vc-item:last-child{ border-bottom:0; }
+.vc-item .vc-ic{ flex:none; width:32px; height:32px; border-radius:50%; background:#fff; border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:16px; }
+.vc-item .vc-nm{ flex:1; min-width:0; word-break:break-word; }
+.vc-item .vc-x{ flex:none; font-size:12px; font-weight:900; color:#fff; background:var(--purple); border-radius:99px; padding:2px 9px; }
+.vc-empty{ text-align:center; color:var(--muted); font-weight:700; font-size:13px; padding:22px 8px; line-height:1.5; }
+.vc-hint{ font-size:12px; font-weight:700; color:var(--muted); margin:10px 2px 0; line-height:1.45; }
+.vc-actions{ display:flex; gap:8px; margin-top:12px; }
+body.vip-mode .vc-tab{ background:rgba(212,180,131,.10); border-color:rgba(212,180,131,.4); color:#e6cf9f; }
+body.vip-mode .vc-tab small{ background:rgba(0,0,0,.35); border-color:rgba(212,180,131,.4); color:#e6cf9f; }
+body.vip-mode .vc-tab.active{ background:rgba(212,180,131,.24); border-color:#d4b483; color:#f3dfb4; box-shadow:none; }
+body.vip-mode .vc-tab.active small{ background:#d4b483; color:#1a1408; border-color:#d4b483; }
+body.vip-mode .vc-list{ background:rgba(255,255,255,.04); border-color:rgba(212,180,131,.3); }
+body.vip-mode .vc-item{ color:#f1e6cc; border-bottom-color:rgba(212,180,131,.25); }
+body.vip-mode .vc-item .vc-ic{ background:rgba(0,0,0,.35); border-color:rgba(212,180,131,.4); }
+body.vip-mode .vc-item .vc-x{ background:#d4b483; color:#1a1408; }
+body.vip-mode .vc-empty, body.vip-mode .vc-hint{ color:#cbbf9f; }
+
+/* ===== v13: ô khách vừa trúng voucher ===== */
+.winfeed{ background:linear-gradient(135deg,#fffaf0,#fff3dc); border:2px solid var(--accent); border-radius:20px; padding:10px 12px 8px; margin-bottom:14px; box-shadow:0 2px 10px rgba(230,126,34,.14); }
+.wf-head{ font-size:12.5px; font-weight:900; color:var(--accent); letter-spacing:.2px; display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.wf-list{ max-height:152px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.wf-row{ display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px dashed rgba(230,126,34,.35); font-size:12.5px; font-weight:700; color:var(--ink); }
+.wf-row:first-child{ border-top:0; }
+.wf-ava{ flex:none; font-size:15px; }
+.wf-who{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wf-who b{ font-weight:900; }
+.wf-who i{ font-style:normal; color:var(--muted); font-weight:800; font-size:11.5px; margin-left:3px; }
+.wf-prize{ flex:none; max-width:42%; text-align:right; font-weight:900; font-size:12px; color:#fff; background:var(--purple); border-radius:99px; padding:2px 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wf-time{ flex:none; width:44px; text-align:right; font-size:10.5px; font-weight:800; color:var(--muted); }
+.wf-empty{ text-align:center; font-size:12.5px; font-weight:800; color:var(--muted); padding:8px 4px 6px; }
+body.vip-mode .winfeed{ background:rgba(212,180,131,.08); border-color:rgba(212,180,131,.45); box-shadow:none; }
+body.vip-mode .wf-head{ color:#e6cf9f; }
+body.vip-mode .wf-row{ color:#f1e6cc; border-top-color:rgba(212,180,131,.25); }
+body.vip-mode .wf-who i, body.vip-mode .wf-time, body.vip-mode .wf-empty{ color:#cbbf9f; }
+body.vip-mode .wf-prize{ background:#d4b483; color:#1a1408; }
 </style>
 </head>
 <body>
@@ -495,6 +554,7 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
     <div class="header-actions">
       <div class="btn-header-icon" id="btn-profile-icon" onclick="openProfileScreen()" title="Thông tin cá nhân">👤</div>
       <div class="btn-header-icon" id="btn-wheel-icon" onclick="openWheelModal()" title="Vòng quay">🎡</div>
+      <div class="btn-header-icon" id="btn-voucher-icon" onclick="openVoucherModal()" title="Voucher của tôi">🎟️<span class="vc-badge" id="vc-badge">0</span></div>
       <div class="btn-header-icon" id="btn-history-icon" onclick="openHistoryScreen()" title="Lịch sử đơn hàng">📜</div>
     </div>
   </div>
@@ -551,6 +611,7 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
     </div>
     <div id="vip-status-banner" class="priority-banner"><div class="pb-1">✦ KHÁCH HÀNG PRIORITY ✦</div><div class="pb-2">Cảm ơn bạn đã đồng hành cùng Tiệm Trà Mèo Xám (tổng chi tiêu trên 3 triệu)</div></div>
     <div id="alert-merge-order" style="display:none; background:#eaf4ed; border:2px dashed var(--good); border-radius:14px; padding:10px; margin-bottom:14px; text-align:center; font-size:13px; font-weight:800; color:var(--good);">Đang trong chế độ: GỌI THÊM MÓN VÀO ĐƠN HIỆN TẠI ➕</div>
+    <div class="winfeed" id="winfeed"><div class="wf-head">🏆 KHÁCH VỪA TRÚNG VOUCHER</div><div class="wf-list" id="winfeed-list"><div class="wf-empty">Đang tải...</div></div></div>
     <div class="group-bar" id="group-bar"></div>
     <div class="category-scroll" id="cat-tabs"><p style="font-size:13px; color:var(--muted); padding:10px;">Đang đồng bộ Menu...</p></div>
     <div class="menu-grid" id="menu-grid"></div>
@@ -665,8 +726,15 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
     <h3 style="color:var(--purple); margin:0; font-size:19px;">🎡 VÒNG QUAY MAY MẮN</h3>
     <div class="power-wrap" id="power-wrap"><span class="pw-icon">⚡</span><div class="power-bar"><div class="power-fill" id="power-fill"></div></div><span class="power-pct" id="power-pct">0%</span></div>
     <div class="wheel-container">
-      <div class="wheel-pin"></div>
+      <svg class="wheel-rim" viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs><linearGradient id="rimGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".5" stop-color="#d9a21b"/><stop offset="1" stop-color="#a86f00"/></linearGradient></defs>
+        <circle r="99" fill="url(#rimGold)" stroke="#6b4300" stroke-width=".8"/>
+        <circle r="91" fill="#8a1f2d" stroke="#5e1019" stroke-width=".6"/>
+        <circle r="88.6" fill="none" stroke="#ffe08a" stroke-width="1.2"/>
+        <circle class="bulb b1" cx="0.00" cy="-95.00" r="2.3"/><circle class="bulb b2" cx="29.36" cy="-90.35" r="2.3"/><circle class="bulb b1" cx="55.84" cy="-76.86" r="2.3"/><circle class="bulb b2" cx="76.86" cy="-55.84" r="2.3"/><circle class="bulb b1" cx="90.35" cy="-29.36" r="2.3"/><circle class="bulb b2" cx="95.00" cy="-0.00" r="2.3"/><circle class="bulb b1" cx="90.35" cy="29.36" r="2.3"/><circle class="bulb b2" cx="76.86" cy="55.84" r="2.3"/><circle class="bulb b1" cx="55.84" cy="76.86" r="2.3"/><circle class="bulb b2" cx="29.36" cy="90.35" r="2.3"/><circle class="bulb b1" cx="0.00" cy="95.00" r="2.3"/><circle class="bulb b2" cx="-29.36" cy="90.35" r="2.3"/><circle class="bulb b1" cx="-55.84" cy="76.86" r="2.3"/><circle class="bulb b2" cx="-76.86" cy="55.84" r="2.3"/><circle class="bulb b1" cx="-90.35" cy="29.36" r="2.3"/><circle class="bulb b2" cx="-95.00" cy="0.00" r="2.3"/><circle class="bulb b1" cx="-90.35" cy="-29.36" r="2.3"/><circle class="bulb b2" cx="-76.86" cy="-55.84" r="2.3"/><circle class="bulb b1" cx="-55.84" cy="-76.86" r="2.3"/><circle class="bulb b2" cx="-29.36" cy="-90.35" r="2.3"/>
+      </svg>
       <div class="wheel" id="visual-wheel"></div>
+      <div class="wheel-pin"><svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 47 L5 17 A17 17 0 1 1 35 17 Z" fill="#e53935" stroke="#7a1414" stroke-width="2" stroke-linejoin="round"/><circle cx="20" cy="17" r="7" fill="#fff4b8" stroke="#b8860b" stroke-width="2"/></svg></div>
       <div class="wheel-center" id="wheel-center" title="Giữ để nạp lực, thả để quay">😺</div>
     </div>
     <div class="wheel-info">
@@ -674,12 +742,29 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
       <div class="wi-result" id="wheel-result-box">Giữ chú mèo để nạp lực, thả tay để quay!</div>
     </div>
     <div class="wheel-chips">
-      <button class="wheel-chip" id="chip-bag" onclick="toggleWheelPanel('bag')">🎒 Voucher (<span id="bag-count">0</span>)</button>
+      <button class="wheel-chip" id="chip-bag" onclick="openVoucherModal()">🎒 Voucher (<span id="bag-count">0</span>)</button>
       <button class="wheel-chip" id="chip-hist" onclick="toggleWheelPanel('hist')">📜 Lịch sử</button>
       <button class="wheel-chip close" onclick="document.getElementById('wheel-modal').style.display='none'">Đóng</button>
     </div>
     <div class="wheel-panel" id="wheel-panel-bag"><div id="modal-voucher-bag-list">Chưa có voucher nào.</div></div>
     <div class="wheel-panel" id="wheel-panel-hist"><div id="modal-spin-history">Chưa có lượt quay nào.</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="voucher-modal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-card" style="text-align:center; padding:22px 18px 20px;">
+    <h3 style="color:var(--purple); margin:0; font-size:19px;">🎟️ VOUCHER CỦA TÔI</h3>
+    <div class="vc-tabs">
+      <button class="vc-tab active" id="vc-tab-pct" onclick="setVoucherTab('pct')"><span class="vc-ti">🏷️</span><b>Giảm %</b><small id="vc-cnt-pct">0</small></button>
+      <button class="vc-tab" id="vc-tab-cash" onclick="setVoucherTab('cash')"><span class="vc-ti">💵</span><b>Giảm tiền</b><small id="vc-cnt-cash">0</small></button>
+      <button class="vc-tab" id="vc-tab-other" onclick="setVoucherTab('other')"><span class="vc-ti">🎁</span><b>Ưu đãi khác</b><small id="vc-cnt-other">0</small></button>
+    </div>
+    <div class="vc-list" id="vc-list"></div>
+    <div class="vc-hint">Chọn voucher ở bước <b>Giỏ hàng</b> để áp dụng. Mỗi đơn dùng 1 voucher.</div>
+    <div class="vc-actions">
+      <button class="btn outline" style="flex:1;" onclick="document.getElementById('voucher-modal').style.display='none'; openWheelModal();">🎡 Đi quay</button>
+      <button class="btn" style="flex:1;" onclick="document.getElementById('voucher-modal').style.display='none'">Đóng</button>
+    </div>
   </div>
 </div>
 
@@ -693,6 +778,19 @@ body.vip-mode .group-start .gs-s, body.vip-mode .group-active .ga-sub{ color:#bf
     <div style="display:flex; gap:10px;">
       <button class="btn outline" style="flex:1;" onclick="copyGroupLink()">📋 Sao chép link</button>
       <button class="btn" style="flex:1;" onclick="document.getElementById('group-qr-modal').style.display='none'">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="group-keepcart-modal">
+  <div class="modal-card" style="text-align:center;">
+    <h3 style="margin-top:0;">🛒 Giỏ hàng của bạn</h3>
+    <p id="gkc-text" style="font-size:14px; font-weight:800; color:var(--ink); margin:0 0 6px; line-height:1.5;"></p>
+    <div id="gkc-voucher" style="display:none; text-align:left; font-size:12.5px; font-weight:800; line-height:1.45; background:#fff4e0; border:1.5px dashed var(--accent); color:#8a5200; border-radius:14px; padding:10px 12px; margin-top:8px;"></div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
+      <button class="btn success" onclick="resolveKeepCart('keep')">✅ Giữ giỏ hàng, thêm vào đơn nhóm</button>
+      <button class="btn outline" onclick="resolveKeepCart('reset')">🗑️ Không giữ, chọn món mới</button>
+      <button class="btn outline" style="font-size:13px; padding:10px;" onclick="resolveKeepCart('cancel')">Hủy, chưa tham gia nhóm</button>
     </div>
   </div>
 </div>
@@ -974,7 +1072,7 @@ function renderDynamicWheel() {
   const deg = 360 / n, half = (deg/2) * Math.PI / 180;
   const colors = pickDistinctColors(WHEEL_CONFIG);
   const pt = (a, r) => { const rad = a*Math.PI/180; return [ (r*Math.sin(rad)).toFixed(3), (-r*Math.cos(rad)).toFixed(3) ]; };
-  let wedges = '', labels = '';
+  let wedges = '', labels = '', pegs = '';
   WHEEL_CONFIG.forEach((sec, i) => {
     const a1 = i*deg, a2 = (i+1)*deg, mid = a1 + deg/2;
     const col = colors[i];
@@ -984,6 +1082,7 @@ function renderDynamicWheel() {
       const [x1,y1] = pt(a1,R), [x2,y2] = pt(a2,R);
       wedges += `<path d="M0 0 L${x1} ${y1} A${R} ${R} 0 ${deg>180?1:0} 1 ${x2} ${y2} Z" fill="${col}" stroke="#fff" stroke-width="0.7" stroke-linejoin="round"/>`;
     }
+    if(n > 1){ const [px,py] = pt(a1, 96.2); pegs += `<circle cx="${px}" cy="${py}" r="1.7" fill="#ffe9a3" stroke="#b8860b" stroke-width=".45"/>`; }
     const rgb = _hexToRgb(col) || [0,0,0];
     const lum = (0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]) / 255;
     const light = lum > 0.68;
@@ -997,7 +1096,7 @@ function renderDynamicWheel() {
     });
     labels += `<g transform="rotate(${(mid-90).toFixed(3)})">${texts}</g>`;
   });
-  wheelEl.innerHTML = `<svg viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${wedges}${labels}</svg>`;
+  wheelEl.innerHTML = `<svg viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${wedges}${labels}${pegs}</svg>`;
 }
 // Font Nunito tải xong thì vẽ lại để đo chữ chính xác
 if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => { try { renderDynamicWheel(); } catch(e) {} }); }
@@ -1478,7 +1577,87 @@ function updateTicketUI() {
       spinHistEl.innerHTML = customer.spinHistory.slice(-5).reverse().map(s => `<div style="padding:3px 0; border-bottom:1px dashed #e4ded0;">• [${s.time}] <b>${s.result}</b>${s.revoked ? ' <span style="color:var(--bad); font-weight:800;">(Đã thu hồi)</span>' : ''}</div>`).join('');
     } else { spinHistEl.innerHTML = 'Chưa có lượt quay nào.'; }
   }
+  try { renderVoucherModal(); } catch(e) {}
 }
+
+/* ===== Voucher: phân loại + ô tròn Voucher ===== */
+let VC_TAB = 'pct';
+function voucherKind(v) {
+  const raw = String((v && v.name) || '');
+  const n = raw.toLowerCase();
+  if(n.includes('free') || n.includes('1 ly')) return { kind: 'free', val: 0 };
+  const m = raw.match(/(\d+)\s*%/);
+  if(m) return { kind: 'pct', val: parseInt(m[1], 10) };
+  const cash = parseVoucherCashDiscount(v);
+  if(cash > 0) return { kind: 'cash', val: cash };
+  return { kind: 'other', val: 0 };
+}
+function groupVouchers(list) {
+  const g = { pct: [], cash: [], other: [] };
+  list.forEach(v => { const k = voucherKind(v); g[k.kind === 'free' ? 'other' : k.kind].push({ v: v, val: k.val, kind: k.kind }); });
+  g.pct.sort((a, b) => b.val - a.val);
+  g.cash.sort((a, b) => b.val - a.val);
+  return g;
+}
+function setVoucherTab(t) { VC_TAB = t; renderVoucherModal(); }
+function renderVoucherModal() {
+  const list = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
+  const badge = document.getElementById('vc-badge');
+  if(badge) { badge.textContent = list.length > 99 ? '99+' : String(list.length); badge.style.display = list.length ? 'flex' : 'none'; }
+  const box = document.getElementById('vc-list');
+  if(!box) return;
+  const g = groupVouchers(list);
+  ['pct', 'cash', 'other'].forEach(k => {
+    const c = document.getElementById('vc-cnt-' + k); if(c) c.textContent = g[k].length;
+    const t = document.getElementById('vc-tab-' + k); if(t) t.classList.toggle('active', VC_TAB === k);
+  });
+  const rows = g[VC_TAB] || [];
+  if(!rows.length) {
+    const msg = { pct: 'Chưa có voucher giảm %.', cash: 'Chưa có voucher giảm tiền.', other: 'Chưa có ưu đãi khác (Free ly...).' }[VC_TAB];
+    box.innerHTML = '<div class="vc-empty">' + msg + '<br>Quay vòng quay để săn thêm nhé! 🎡</div>';
+    return;
+  }
+  const merged = [];
+  rows.forEach(r => { const f = merged.find(m => m.v.name === r.v.name); if(f) f.n++; else merged.push({ v: r.v, kind: r.kind, n: 1 }); });
+  const icon = { pct: '🏷️', cash: '💵', free: '🧋', other: '🎁' };
+  box.innerHTML = merged.map(m => '<div class="vc-item"><span class="vc-ic">' + (icon[m.kind] || '🎁') + '</span><span class="vc-nm">' + _escHtml(m.v.name) + '</span>' + (m.n > 1 ? '<span class="vc-x">×' + m.n + '</span>' : '') + '</div>').join('');
+}
+function openVoucherModal() {
+  if(isGuest || !customer.loginPhone) { goRegisterFromGuest(); return; }
+  const list = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
+  const g = groupVouchers(list);
+  if(!g[VC_TAB].length) { const first = ['pct', 'cash', 'other'].find(k => g[k].length); if(first) VC_TAB = first; }
+  renderVoucherModal();
+  document.getElementById('voucher-modal').style.display = 'flex';
+}
+
+/* ===== Khách vừa trúng voucher (chỉ hiện Tên + 4 số cuối SĐT) ===== */
+const WINFEED_PATH = 'meoxam_data/winFeed';
+let WIN_FEED = {}, _hiddenWinKey = null;
+function winTimeText(at) {
+  const d = serverNow() - Number(at || 0);
+  if(!(d >= 0)) return 'vừa xong';
+  const m = Math.floor(d / 60000);
+  if(m < 1) return 'vừa xong';
+  if(m < 60) return m + ' phút';
+  const h = Math.floor(m / 60);
+  if(h < 24) return h + ' giờ';
+  return Math.floor(h / 24) + ' ngày';
+}
+function renderWinFeed() {
+  const box = document.getElementById('winfeed-list');
+  if(!box) return;
+  const keys = Object.keys(WIN_FEED || {}).filter(k => k !== _hiddenWinKey && WIN_FEED[k] && WIN_FEED[k].result).sort().slice(-15).reverse();
+  if(!keys.length) { box.innerHTML = '<div class="wf-empty">Chưa có ai trúng gần đây, hãy quay để trở thành người đầu tiên! 🎉</div>'; return; }
+  box.innerHTML = keys.map(k => {
+    const w = WIN_FEED[k];
+    const p4 = String(w.p4 || '').replace(/\D/g, '').slice(-4);
+    return '<div class="wf-row"><span class="wf-ava">🎉</span><span class="wf-who"><b>' + _escHtml(w.name || 'Khách') + '</b><i>••••' + _escHtml(p4) + '</i></span><span class="wf-prize">' + _escHtml(w.result) + '</span><span class="wf-time">' + winTimeText(w.at) + '</span></div>';
+  }).join('');
+}
+try {
+  db.ref(WINFEED_PATH).orderByKey().limitToLast(15).on('value', snap => { WIN_FEED = snap.val() || {}; renderWinFeed(); });
+} catch(e) { console.error('winFeed:', e); }
 
 function openWheelModal() {
   if(isGuest || !customer.loginPhone) { goRegisterFromGuest(); return; }
@@ -1716,6 +1895,11 @@ function spinWheel(power) {
         roll: Number(pick.roll.toFixed(4)), total: pick.total, index: winningIndex,
         config: cfgSnap, at: firebase.database.ServerValue.TIMESTAMP
       }).catch(()=>{});
+      if(!isLose) {
+        const wk = String(Math.round(serverNow())).padStart(13, '0') + '_' + spinId;
+        _hiddenWinKey = wk;   // không "lộ" kết quả trước khi vòng quay dừng
+        db.ref(WINFEED_PATH + '/' + wk).set({ name: customer.name || 'Khách', p4: String(customer.loginPhone || '').slice(-4), result: wonItem.name, at: firebase.database.ServerValue.TIMESTAMP }).catch(()=>{});
+      }
     }
     if(!res.committed) {
       finishSpin();
@@ -1736,6 +1920,7 @@ function spinWheel(power) {
     wheelEl.style.transform = `rotate(${currentWheelRotation}deg)`;
     setTimeout(() => {
       finishSpin();
+      _hiddenWinKey = null; renderWinFeed();
       resultBox.innerHTML = isLose
         ? `😢 <b style="color:var(--bad);">Rất tiếc! Chúc bạn may mắn lần sau.</b>`
         : `🎉 Trúng: <b style="color:var(--good);">${wonItem.name}</b>`;
@@ -1783,11 +1968,12 @@ function showScreen(id) {
   const btnProfile = document.getElementById('btn-profile-icon');
   const btnHistory = document.getElementById('btn-history-icon');
   const btnWheel = document.getElementById('btn-wheel-icon');
+  const btnVoucher = document.getElementById('btn-voucher-icon');
   if (id === 'step2-menu' && getBillItems().length > 0) { bottomBar.classList.add('visible'); } else { bottomBar.classList.remove('visible'); }
-  if (id === 'step1-info' || id === 'step5-success' || isGuest) { btnProfile.style.display = 'none'; btnHistory.style.display = 'none'; btnWheel.style.display = 'none'; }
-  else { btnProfile.style.display = 'flex'; btnHistory.style.display = 'flex'; btnWheel.style.display = 'flex'; }
+  if (id === 'step1-info' || id === 'step5-success' || isGuest) { btnProfile.style.display = 'none'; btnHistory.style.display = 'none'; btnWheel.style.display = 'none'; if(btnVoucher) btnVoucher.style.display = 'none'; }
+  else { btnProfile.style.display = 'flex'; btnHistory.style.display = 'flex'; btnWheel.style.display = 'flex'; if(btnVoucher) btnVoucher.style.display = 'flex'; }
   applyGuestUI();
-  if(id === 'step2-menu') renderGroupBar();
+  if(id === 'step2-menu') { renderGroupBar(); try { renderWinFeed(); } catch(e) {} }
 }
 
 function goToMenuIfNeeded() {
@@ -2047,8 +2233,11 @@ function updateVoucherDropdown() {
   if(isGroupMember) { selectEl.innerHTML = '<option value="none">-- Chỉ chủ nhóm được dùng voucher --</option>'; selectEl.value = 'none'; return; }
   const validVouchers = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
   let html = '<option value="none">-- Không dùng voucher --</option>';
-  validVouchers.forEach(v => {
-    html += `<option value="${v.id}">${v.name}</option>`;
+  const grp = groupVouchers(validVouchers);
+  const grpLabel = { pct: '🏷️ Giảm %', cash: '💵 Giảm tiền', other: '🎁 Ưu đãi khác' };
+  ['pct', 'cash', 'other'].forEach(k => {
+    if(!grp[k].length) return;
+    html += `<optgroup label="${grpLabel[k]}">` + grp[k].map(x => `<option value="${x.v.id}">${_escHtml(x.v.name)}</option>`).join('') + `</optgroup>`;
   });
   selectEl.innerHTML = html;
   selectEl.value = validVouchers.some(v => v.id === currentVal) ? currentVal : 'none';
@@ -2675,7 +2864,26 @@ function resumeGroupIfPending() {
     document.getElementById('group-join-modal').style.display = 'flex';
   }).catch(e => console.error(e));
 }
+let _keepCartResolver = null;
+function askKeepCartOnJoin(selVoucher) {
+  return new Promise(resolve => {
+    const n = cart.reduce((sum, i) => sum + (Number(i.qty) || 1), 0);
+    document.getElementById('gkc-text').textContent = `Bạn đang có ${n} món trong giỏ hàng. Bạn có muốn giữ lại khi tham gia nhóm không?`;
+    const vb = document.getElementById('gkc-voucher');
+    if(selVoucher) { vb.style.display = 'block'; vb.innerHTML = '🎟️ Bạn đang chọn voucher <b>' + _escHtml(selVoucher.name) + '</b>. Trong đơn nhóm chỉ chủ nhóm được dùng voucher nên voucher này sẽ không áp dụng, nhưng <b>vẫn được giữ lại trong túi voucher</b> của bạn, không bị mất.'; }
+    else vb.style.display = 'none';
+    if(_keepCartResolver) _keepCartResolver('cancel');
+    _keepCartResolver = resolve;
+    document.getElementById('group-keepcart-modal').style.display = 'flex';
+  });
+}
+function resolveKeepCart(choice) {
+  document.getElementById('group-keepcart-modal').style.display = 'none';
+  const r = _keepCartResolver; _keepCartResolver = null;
+  if(r) r(choice);
+}
 function joinGroup(gid, name, isHost) {
+  if(isMergingOrder && !isHost) { alert('Bạn đang ở chế độ GỌI THÊM MÓN vào đơn hiện tại. Vui lòng hoàn tất đơn này trước khi tham gia đặt nhóm.'); return Promise.resolve(false); }
   const mid = getMemberId();
   const phone = customer.loginPhone && !isGuest ? customer.loginPhone : null;
   return db.ref(`${GROUP_PATH}/${gid}`).once('value').then(snap => {
@@ -2688,11 +2896,22 @@ function joinGroup(gid, name, isHost) {
     const already = members[mid] || (phone && Object.values(members).find(m => m && m.phone === phone));
     if(already) { alert('Bạn đã ở trong nhóm này rồi, không thể tham gia lần nữa.'); return false; }
 
-    // Ghi đúng nhánh thành viên như luồng Firebase cũ; không transaction toàn nhóm.
-    return db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).update({ name: name, phone: phone || null, isHost: !!isHost, orderDone: false, joinedAt: serverNow() }).then(() => {
-      enterGroup(gid, !!isHost);
-      showScreen('step2-menu');
-      return true;
+    // Khách đang có giỏ hàng riêng -> hỏi giữ hay làm mới. Voucher chỉ chủ nhóm được dùng: voucher đang chọn bị gỡ khỏi giỏ nhưng KHÔNG bị tiêu hao.
+    const selEl = document.getElementById('selected-voucher');
+    const selVoucher = (!isHost && selEl && selEl.value !== 'none') ? (customer.vouchers || []).find(v => v.id === selEl.value && !v.used && !v.revoked) : null;
+    const decide = (!isHost && cart.length > 0) ? askKeepCartOnJoin(selVoucher) : Promise.resolve('keep');
+    return decide.then(choice => {
+      if(choice === 'cancel') return false;
+      // Ghi đúng nhánh thành viên như luồng Firebase cũ; không transaction toàn nhóm.
+      return db.ref(`${GROUP_PATH}/${gid}/members/${mid}`).update({ name: name, phone: phone || null, isHost: !!isHost, orderDone: false, joinedAt: serverNow() }).then(() => {
+        if(choice === 'reset') cart = [];
+        if(selEl && !isHost) selEl.value = 'none';
+        enterGroup(gid, !!isHost);
+        showScreen('step2-menu');
+        renderCartUI(); updateBottomCartBar();
+        if(selVoucher) setTimeout(() => alert(`Voucher "${selVoucher.name}" không áp dụng được trong đơn nhóm (chỉ chủ nhóm được dùng voucher). Voucher vẫn còn nguyên trong túi voucher của bạn, bạn có thể dùng cho đơn khác nhé!`), 200);
+        return true;
+      });
     });
   }).catch(e => { alert('Không vào được đơn nhóm: ' + e.message); return false; });
 }
