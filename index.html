@@ -113,6 +113,22 @@
   .qty-btn { width: 30px; height: 30px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--soft); font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .pay-box { border: 2px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 12px; background: #fffdf8; text-align: center; cursor: pointer; transition: all 0.2s; }
   .pay-box.active { background: #eaf4ed; border-color: var(--good); border-width: 3px; transform: scale(1.02); }
+  /* Ô thanh toán đã chọn: nổi bật rõ + nhãn ĐÃ CHỌN */
+  .pay-box { position: relative; }
+  body .pay-box.active { background: #dff3e5 !important; border-color: #1e9e4a !important; border-width: 3px !important; transform: scale(1.03); box-shadow: 0 0 0 4px rgba(46,204,113,.28), 0 10px 22px rgba(30,125,60,.22) !important; }
+  .pay-box.active::after { content: '✓ ĐÃ CHỌN'; position: absolute; top: -11px; right: 16px; background: #1e9e4a; color: #fff; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 10px; }
+  body.vip-mode .pay-box.active { background: #1c2a1f !important; }
+  #pay-choose-hint { text-align:center; font-weight:900; font-size:13.5px; color:#d35400; margin:2px 0 10px; }
+  @keyframes payNeed { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  #payment-options-container.need-choose .pay-box { animation: payNeed .4s; border-color:#e67e22; }
+  .btn-send-order { background: linear-gradient(135deg,#ff8a00,#ff4d2e) !important; color:#fff !important; border-color:#e0531f !important; box-shadow: 0 8px 20px rgba(255,90,40,.38); letter-spacing:.2px; }
+  .btn-send-order.need-pay { opacity:.55; filter:saturate(.55); box-shadow:none; }
+  .chat-img { display:block; max-width:100%; min-width:90px; min-height:60px; border-radius:12px; background:var(--soft); cursor:zoom-in; }
+  .chat-footer .chat-img-btn { background: var(--soft); color: var(--ink); padding: 8px 11px; font-size:16px; }
+  .pay-qr-info { font-size:12.5px; margin-top:6px; line-height:1.5; }
+  .pay-pending-note { background:#fff4e5; border:1.5px dashed #e67e22; color:#a85a00; border-radius:12px; padding:10px 12px; font-size:12.5px; font-weight:700; margin-top:12px; }
+  .floating-tag.compact { padding: 6px; gap: 0; }
+  .floating-tag.compact span, .floating-tag.compact .pulse-dot { display: none; }
   .pay-box-title { font-size: 16px; font-weight: 900; margin-bottom: 4px; }
   .qr-container { display: none; text-align: center; margin-top: 16px; animation: fadeIn 0.3s ease; }
   .qr-container img { max-width: 100%; border-radius: 18px; border: 3px solid var(--line); width: 280px; }
@@ -133,6 +149,14 @@
   .history-card { background: #fffdf8; border: 2px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
   .history-card.voucher-glow { border: 3px solid var(--purple); animation: purpleGlowBorder 1.5s infinite alternate; }
   @keyframes purpleGlowBorder { 0% { box-shadow: 0 0 5px rgba(142,68,173,0.4); border-color: #8e44ad; } 100% { box-shadow: 0 0 15px rgba(142,68,173,0.9); border-color: #d2b4de; } }
+  /* Trạng thái đơn: đang làm = viền vàng · hoàn thành = xanh lá · đã hủy = xám đỏ */
+  body .history-card.st-processing { border: 3px solid #f1c40f !important; box-shadow: 0 0 0 4px rgba(241,196,15,.18); }
+  body .history-card.st-done { border: 2.5px solid #2ecc71 !important; background: #f1fbf5; }
+  body .history-card.st-cancel { border: 2px dashed #c9a29e !important; }
+  body.vip-mode .history-card.st-done { background: #12261a !important; }
+  .order-state-note { display:inline-block; font-size:11.5px; font-weight:900; border-radius:8px; padding:3px 9px; margin-bottom:8px; }
+  .order-state-note.done { background:#2ecc71; color:#fff; }
+  .order-state-note.doing { background:#f1c40f; color:#4a3b00; }
   .history-card-header { display: flex; justify-content: space-between; font-weight: 900; font-size: 14px; margin-bottom: 8px; border-bottom: 1px dashed #cfc7b2; padding-bottom: 8px; }
   .history-item-line { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
   .history-item-sub { font-size: 11.5px; color: var(--muted); margin-left: 10px; margin-bottom: 6px; }
@@ -664,11 +688,12 @@ body.vip-mode .wf-prize{ background:#d4b483; color:#1a1408; }
       <div class="input-group" style="margin-bottom:0;"><label>Địa chỉ *</label><textarea id="guest-address" rows="2" placeholder="Giao tận nơi hoặc Số bàn..."></textarea></div>
     </div>
     <div id="payment-options-container">
-      <div class="pay-box active" id="pay-cash" onclick="selectPayment('Tiền mặt')"><div class="pay-box-title">💵 Tiền mặt</div><div style="font-size:13px; color:var(--muted);">Thanh toán bằng tiền mặt khi nhận hàng</div></div>
-      <div class="pay-box" id="pay-bank" onclick="selectPayment('Chuyển khoản')"><div class="pay-box-title">📱 Chuyển khoản QR</div><div style="font-size:13px; color:var(--muted);">Quét mã QR (Cần gửi ảnh bill cho nhân viên)</div></div>
+      <div id="pay-choose-hint">👇 Vui lòng chọn 1 hình thức thanh toán</div>
+      <div class="pay-box" id="pay-cash" onclick="selectPayment('Tiền mặt')"><div class="pay-box-title">💵 Tiền mặt</div><div style="font-size:13px; color:var(--muted);">Thanh toán bằng tiền mặt khi nhận hàng</div></div>
+      <div class="pay-box" id="pay-bank" onclick="selectPayment('Chuyển khoản')"><div class="pay-box-title">📱 Chuyển khoản QR</div><div style="font-size:13px; color:var(--muted);">Quét mã QR · chuyển xong gửi ảnh bill cho quán qua 💬 chat</div></div>
     </div>
-    <div class="qr-container" id="qr-section"><p style="font-weight:800; font-size:14px; margin-bottom:10px;">Quét mã bên dưới để thanh toán:</p><img src="1.jpg" alt="Mã QR Thanh Toán"></div>
-    <button class="btn" style="margin-top:24px; font-size:16px; padding:16px;" onclick="submitOrder()">HOÀN TẤT GỬI ĐƠN</button>
+    <div class="qr-container" id="qr-section"></div>
+    <button class="btn btn-send-order need-pay" id="btn-submit-order" style="margin-top:24px; font-size:16px; padding:16px;" onclick="submitOrder()">📨 Chuyển yêu cầu đến quán</button>
     <button class="btn outline" style="margin-top:12px;" onclick="showScreen('step3-cart')">Quay lại</button>
   </div>
 
@@ -678,6 +703,7 @@ body.vip-mode .wf-prize{ background:#d4b483; color:#1a1408; }
       <h2 style="color:var(--good);" id="success-title">ĐẶT HÀNG THÀNH CÔNG!</h2>
       <p style="font-size:15px; font-weight:600; line-height:1.5;">Cảm ơn Quý khách <b id="success-name"></b> đã chọn Tiệm Trà Mèo Xám.</p>
       <p style="font-size:14px; color:var(--muted); margin-top:10px; background:#eaf4ed; padding:16px; border-radius:14px; border:2px dashed var(--good);">Tiệm Trà Mèo Xám cảm ơn vì luôn chọn tin tưởng quán, món nước của bạn sẽ được giao đến tay sớm nhất, xin trân trọng cảm ơn.</p>
+      <div id="success-bank-note" class="pay-pending-note" style="display:none;">📱 Bạn chọn chuyển khoản: sau khi chuyển xong, hãy bấm nút bên dưới để gửi ảnh bill cho quán nhé.<br><button class="btn" style="margin-top:8px;" onclick="openChatForProof()">💬 Gửi ảnh bill cho quán</button></div>
       <button class="btn outline" id="btn-success-history" style="margin-top:20px;" onclick="openHistoryScreen()">Xem Lịch Sử Đơn</button>
       <button class="btn" id="btn-success-more" style="margin-top:20px; display:none;" onclick="showScreen('step2-menu')">🧋 Đặt thêm đơn mới</button>
     </div>
@@ -875,7 +901,7 @@ body.vip-mode .wf-prize{ background:#d4b483; color:#1a1408; }
 <div id="chat-window" class="chat-window">
   <div class="chat-header"><b>Trò chuyện với quán</b><span style="cursor:pointer; font-size:18px; color:var(--bad);" onclick="toggleChatWindow()">✕</span></div>
   <div class="chat-body" id="chat-messages"><div style="text-align:center; font-size:12px; color:var(--muted); margin-top:20px;">Nhắn tin cho quán nếu cần hỗ trợ thêm nhé!</div></div>
-  <div class="chat-footer"><input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." onkeypress="if(event.key === 'Enter') sendChatMessage()"><button onclick="sendChatMessage()">Gửi</button></div>
+  <div class="chat-footer"><button class="chat-img-btn" onclick="pickChatImage()" title="Gửi hình ảnh">📷</button><input type="file" id="chat-img-input" accept="image/*" style="display:none" onchange="onChatImagePicked(this)"><input type="text" id="chat-input-msg" placeholder="Nhập tin nhắn..." onkeypress="if(event.key === 'Enter') sendChatMessage()"><button onclick="sendChatMessage()">Gửi</button></div>
 </div>
 
 <script>
@@ -883,6 +909,43 @@ let MEOXAM_MENU = [];
 let TOPPINGS = [];
 let ALL_CATEGORIES = [];
 let ALL_ORDERS = [];
+/* Firebase có thể trả danh sách đơn dạng mảng / object / có ô trống → luôn chuẩn hóa về mảng */
+function normalizeOrders(v){
+  if(!v) return [];
+  const a = Array.isArray(v) ? v : Object.values(v);
+  return a.filter(o => o && typeof o === 'object');
+}
+const ORDER_CLOSED_STATUSES = ['Hoàn thành', 'Đã hủy'];
+function isOrderOpen(o){ return !!o && ORDER_CLOSED_STATUSES.indexOf(o.status) < 0; } // gồm cả 'Yêu cầu hủy' (quán chưa xử lý xong)
+/* Đơn đang chờ quán hoàn thành của chính khách này (khách đăng nhập: theo SĐT đăng nhập; khách lẻ: theo SĐT nhập) */
+function getMyOpenOrder(guestPhone){
+  const list = Array.isArray(ALL_ORDERS) ? ALL_ORDERS : normalizeOrders(ALL_ORDERS);
+  if(isGuest){
+    let gp = guestPhone || '';
+    if(!gp){ const el = document.getElementById('guest-phone'); gp = el ? el.value.trim() : ''; }
+    if(!gp){ try { const g = JSON.parse(localStorage.getItem('mx_guest_info') || 'null'); if(g && g.phone) gp = g.phone; } catch(e) {} }
+    if(!gp) return null;
+    return list.find(o => o && o.isGuest && o.guestPhone === gp && isOrderOpen(o)) || null;
+  }
+  if(!customer.loginPhone) return null;
+  return list.find(o => o && o.customerPhone === customer.loginPhone && isOrderOpen(o)) || null;
+}
+/* Quy tắc: còn đơn chưa hoàn thành thì KHÔNG được đặt đơn mới (chỉ được "Gọi thêm" vào đơn đó) */
+function blockIfOpenOrder(guestPhone){
+  if(isMergingOrder) return false;
+  if(groupId && !groupIsHost) return false;
+  const open = getMyOpenOrder(guestPhone);
+  if(!open) return false;
+  const cancelling = open.status === 'Yêu cầu hủy';
+  let msg = cancelling
+    ? 'Quán đang xác nhận hủy đơn trước của bạn. Vui lòng chờ quán xử lý xong rồi mới đặt đơn mới nhé!'
+    : 'Bạn đang có 1 đơn chưa được quán hoàn thành. Để tránh nhầm đơn, chỉ khi quán bấm HOÀN THÀNH bạn mới đặt được đơn mới.';
+  if(!isGuest && !cancelling) msg += '\n\n👉 Muốn thêm món thì vào "Lịch Sử Đơn" bấm ➕ Gọi Thêm.';
+  alert(msg);
+  if(!isGuest){ try { openHistoryScreen(); } catch(e) {} }
+  return true;
+}
+let _submitBusy = false;
 let WHEEL_CONFIG = [];
 let PRODUCT_IMAGES = {};
 let SHOP_WHEEL_CONFIG = null;
@@ -925,7 +988,7 @@ function migrateLegacyTicketsToLedger(rawData) {
 
 let cart = [];
 let activeCat = '';
-let paymentMethod = 'Tiền mặt';
+let paymentMethod = null; // bắt buộc khách tự chọn (không chọn sẵn)
 let activeOrderId = null;
 let isMergingOrder = false;
 let timerInterval = null;
@@ -989,8 +1052,11 @@ function normalizeWheelConfig(raw) {
 }
 
 let SHOP_TICKET_CONFIG = { spinRate: 10, rewardAmount: 1, voucherDiscountRate: 5 };
+let SHOP_BANK_QR = {};
 db.ref('meoxam_data/config').on('value', snap => {
   const cfg = snap.val() || {};
+  SHOP_BANK_QR = cfg.bankQr || {};
+  try { if(paymentMethod === 'Chuyển khoản' && document.getElementById('step4-payment').classList.contains('active')) renderPayQr(); } catch(e) {}
   SHOP_TICKET_CONFIG = {
     spinRate: cfg.ticketSpinRate || 10,
     rewardAmount: cfg.ticketRewardAmount || 1,
@@ -1247,6 +1313,11 @@ function startCustomerRealtimeListener() {
     const winNotificationToggle = document.getElementById('prof-win-notifications');
     if(winNotificationToggle) winNotificationToggle.checked = customer.winNotificationsEnabled;
     renderWinFeed();
+    const remoteCancelledOrders = normalizeOrders(data.cancelledOrders);
+    if(JSON.stringify(customer.cancelledOrders || []) !== JSON.stringify(remoteCancelledOrders)) {
+      customer.cancelledOrders = remoteCancelledOrders;
+      if(document.getElementById('step6-history').classList.contains('active')) renderHistoryUI();
+    }
     const remoteLedger = data.ticketLedger || [];
     const localLedgerKey = JSON.stringify((customer.ticketLedger || []).map(t => ({ id: t.id, status: t.status })));
     const remoteLedgerKey = JSON.stringify(remoteLedger.map(t => ({ id: t.id, status: t.status })));
@@ -1297,7 +1368,7 @@ db.ref('meoxam_data/products').on('value', snap => {
 
 db.ref('meoxam_data/orders').on('value', snap => {
   const oldOrders = ALL_ORDERS;
-  ALL_ORDERS = snap.val() || [];
+  ALL_ORDERS = normalizeOrders(snap.val());
   syncGroupShopOrderStatus();
   if(customer.loginPhone) {
     checkCanceledOrdersAndRevertRewards(oldOrders, ALL_ORDERS);
@@ -1307,53 +1378,83 @@ db.ref('meoxam_data/orders').on('value', snap => {
   }
 }, err => { console.error("Lỗi tải đơn hàng:", err); });
 
+function isCanceledOrCancelPendingOrder(order) {
+  const status = String(order && order.status || '').toLowerCase();
+  return /hủy|huy|cancel/.test(status);
+}
+function getOrderCancellationSource(order) {
+  const explicit = String(order && (order.cancelledBy || order.canceledBy || order.cancelRequestedBy || order.cancelledByRole || order.cancellationSource) || '').toLowerCase();
+  if(/customer|khách|khach/.test(explicit)) return 'Khách yêu cầu hủy';
+  if(/shop|staff|owner|quán|quan|chủ|chu/.test(explicit)) return 'Quán hủy đơn';
+  const note = String(order && (order.generalNote || order.cancelReason || order.cancellationReason || '') || '').toLowerCase();
+  if(note.includes('[khách yêu cầu hủy đơn]') || note.includes('khách yêu cầu hủy')) return 'Khách yêu cầu hủy';
+  if(order && order.status === 'Yêu cầu hủy') return 'Đang chờ quán xác nhận hủy';
+  return 'Quán hủy đơn';
+}
 function checkCanceledOrdersAndRevertRewards(oldList, newList) {
-  if(!oldList || !Array.isArray(oldList)) return;
+  const previousOrders = normalizeOrders(oldList);
+  if(!previousOrders.length || !customer.loginPhone) return;
+  const currentOrders = normalizeOrders(newList);
+  const fullOrdersListWasCleared = currentOrders.length === 0;
   if(!customer.vouchers) customer.vouchers = [];
   if(!customer.spinHistory) customer.spinHistory = [];
   if(!customer.ticketLedger) customer.ticketLedger = [];
-
-  oldList.forEach(oldOrd => {
-    if(oldOrd.customerPhone !== customer.loginPhone) return;
-    if(oldOrd.status === 'Đã hủy' || oldOrd.status === 'Yêu cầu hủy') return;
-
-    const foundNew = newList.find(n => n.id === oldOrd.id);
-    const isCanceledOrDeleted = !foundNew
-      || foundNew.status === 'Đã hủy'
-      || foundNew.status === 'Yêu cầu hủy';
-
-    if(!isCanceledOrDeleted) return;
-
-    let msg = '';
+  previousOrders.forEach(oldOrd => {
+    if(oldOrd.customerPhone !== customer.loginPhone || oldOrd.status === 'Hoàn thành') return;
+    const foundNew = currentOrders.find(n => n.id === oldOrd.id);
+    const wasRemoved = !foundNew;
+    if(oldOrd.status === 'Đã hủy' && !wasRemoved) return;
+    const isCanceled = wasRemoved || isCanceledOrCancelPendingOrder(foundNew);
+    if(!isCanceled) return;
+    let rewardMsg = '';
     txCustomer(d => {
-      msg = `⚠️ THÔNG BÁO VỀ ĐƠN HÀNG ĐÃ HỦY:\n`;
       let changed = false;
+      d.cancelledOrders = normalizeOrders(d.cancelledOrders);
+      if(wasRemoved) {
+        const archived = d.cancelledOrders.find(o => o.id === oldOrd.id);
+        if(!archived) {
+          d.cancelledOrders.push(Object.assign({}, oldOrd, {
+            status: 'Đã hủy',
+            cancellationSource: getOrderCancellationSource(oldOrd),
+            cancellationReason: oldOrd.cancelReason || oldOrd.cancellationReason || '',
+            cancelledAt: Date.now(),
+            archivedAfterRemoval: true
+          }));
+          changed = true;
+        }
+      }
+      // If the whole order list was cleared at once, preserve history but avoid
+      // treating that bulk reset as evidence that rewards for every order must be reversed.
+      if(fullOrdersListWasCleared) return changed ? undefined : false;
+      rewardMsg = `⚠️ THÔNG BÁO VỀ ĐƠN HÀNG ĐÃ HỦY:\n`;
       d.ticketLedger.filter(x => x.sourceOrderId === oldOrd.id).forEach(tk => {
         if(tk.status === 'unused') {
           d.ticketLedger = d.ticketLedger.filter(x => x.id !== tk.id);
-          msg += `- Thu hồi 1 vé chưa sử dụng do đơn hàng bị hủy.\n`;
+          rewardMsg += `- Thu hồi 1 vé chưa sử dụng do đơn hàng bị hủy.\n`;
           changed = true;
         } else if(tk.status === 'used') {
           if(tk.voucherId) {
             const v = d.vouchers.find(vv => vv.id === tk.voucherId);
-            if(v && !v.revoked) { v.revoked = true; v.revokedReason = "Thu hồi do hủy đơn"; v.revokedAt = Date.now(); msg += `- Voucher "${v.name}" đã bị thu hồi.\n`; changed = true; }
+            if(v && !v.revoked) { v.revoked = true; v.revokedReason = 'Thu hồi do hủy đơn'; v.revokedAt = Date.now(); rewardMsg += `- Voucher "${v.name}" đã bị thu hồi.\n`; changed = true; }
           }
-          const sh = d.spinHistory.find(s => s.ticketId === tk.id);
-          if(sh && !sh.revoked) { sh.revoked = true; sh.revokedReason = "Thu hồi do hủy đơn"; changed = true; }
+          const sh = d.spinHistory.find(x => x.ticketId === tk.id);
+          if(sh && !sh.revoked) { sh.revoked = true; sh.revokedReason = 'Thu hồi do hủy đơn'; changed = true; }
         }
       });
-      if(!changed) return false;
       if(oldOrd.appliedVoucher && oldOrd.appliedVoucher !== 'none') {
         const vid = d.usedVoucherLog && d.usedVoucherLog[oldOrd.id];
         const av = vid ? d.vouchers.find(v => v.id === vid) : d.vouchers.find(v => v.name === oldOrd.appliedVoucher && v.used);
-        if(av && av.used) msg += `- Voucher "${av.name}" đã áp dụng cho đơn này được tính là đã sử dụng và không được hoàn lại.\n`;
+        if(av && av.used) rewardMsg += `- Voucher "${av.name}" đã áp dụng cho đơn này được tính là đã sử dụng và không được hoàn lại.\n`;
       }
+      if(!changed) return false;
     }).then(res => {
-      if(res.committed) setTimeout(() => { alert(msg); }, 300);
+      if(res.committed && rewardMsg && rewardMsg.split('\n').length > 1 && rewardMsg.split('\n').slice(1).some(x => x.trim())) {
+        setTimeout(() => { alert(rewardMsg); }, 300);
+      }
+      if(res.committed && document.getElementById('step6-history').classList.contains('active')) renderHistoryUI();
     }).catch(e => console.error(e));
   });
 }
-
 window.onload = () => {
   const urlGid = getUrlGroupId();
   if(urlGid) { pendingGroupId = urlGid; pendingGroupFromUrl = true; }
@@ -1399,7 +1500,8 @@ function fetchCustomerData(phone, callback, preferredSessionId) {
         ticketLedger: migrateLegacyTicketsToLedger(data),
         vouchers: data.vouchers || [], lastLoginTime: now, nextFreeTicketTime: data.nextFreeTicketTime || 0,
         usedVoucherLog: data.usedVoucherLog || {}, spinHistory: data.spinHistory || [],
-        winNotificationsEnabled: data.winNotificationsEnabled !== false
+        winNotificationsEnabled: data.winNotificationsEnabled !== false,
+        cancelledOrders: normalizeOrders(data.cancelledOrders)
       };
       syncTicketCount();
       if(groupId) groupUpdateMyName();
@@ -1513,8 +1615,7 @@ function logoutCustomer() {
     cart = [];
     document.body.classList.remove('vip-mode');
     document.documentElement.classList.remove('priority-html');
-    document.getElementById('floating-order-tag').style.display = 'none';
-    document.getElementById('chat-window').style.display = 'none';
+    activeOrderStatus = ''; updateChatBubble();
     const hn = document.getElementById('header-customer-name');
     if(hn) hn.remove();
     switchAuthTab('login');
@@ -1777,6 +1878,7 @@ function txCustomer(mutator) {
     d.ticketLedger = Array.isArray(d.ticketLedger) ? d.ticketLedger.map(x => Object.assign({}, x)) : migrateLegacyTicketsToLedger(d);
     d.vouchers = Array.isArray(d.vouchers) ? d.vouchers.map(x => Object.assign({}, x)) : [];
     d.spinHistory = Array.isArray(d.spinHistory) ? d.spinHistory.map(x => Object.assign({}, x)) : [];
+    d.cancelledOrders = normalizeOrders(d.cancelledOrders).map(x => Object.assign({}, x));
     if(d.usedVoucherLog) d.usedVoucherLog = Object.assign({}, d.usedVoucherLog);
     if(mutator(d) === false) return;
     d.tickets = d.ticketLedger.filter(x => x.status === 'unused').length;
@@ -1787,16 +1889,17 @@ function txCustomer(mutator) {
       customer.ticketLedger = v.ticketLedger || [];
       customer.vouchers = v.vouchers || [];
       customer.spinHistory = v.spinHistory || [];
+      customer.cancelledOrders = normalizeOrders(v.cancelledOrders);
       customer.usedVoucherLog = v.usedVoucherLog || {};
       if(v.nextFreeTicketTime) customer.nextFreeTicketTime = v.nextFreeTicketTime;
       syncTicketCount();
       try { localStorage.setItem('mx_active_session', JSON.stringify(customer)); } catch(e) {}
       updateTicketUI();
+      if(document.getElementById('step6-history').classList.contains('active')) renderHistoryUI();
     }
     return res;
   });
 }
-
 // ===== Giữ mèo để nạp lực (tối đa 3 giây: xanh -> đỏ), thả tay để quay =====
 const CHARGE_MAX_MS = 3000;
 let isCharging = false, chargeStartTs = 0, chargeRaf = 0, chargePid = null;
@@ -1987,6 +2090,7 @@ function showScreen(id) {
   if (id === 'step1-info' || id === 'step5-success' || isGuest) { btnProfile.style.display = 'none'; btnHistory.style.display = 'none'; btnWheel.style.display = 'none'; if(btnVoucher) btnVoucher.style.display = 'none'; }
   else { btnProfile.style.display = 'flex'; btnHistory.style.display = 'flex'; btnWheel.style.display = 'flex'; if(btnVoucher) btnVoucher.style.display = 'flex'; }
   applyGuestUI();
+  try { updateChatBubble(); } catch(e) {}
   if(id === 'step2-menu') { renderGroupBar(); try { renderWinFeed(); } catch(e) {} }
 }
 
@@ -1996,18 +2100,33 @@ function goToMenuIfNeeded() {
   }
 }
 
+let activeOrderStatus = '';
+function exitAddOnModeAfterOrderClosed() {
+  if(!isMergingOrder) return false;
+  isMergingOrder = false;
+  const banner = document.getElementById('alert-merge-order');
+  const submitButton = document.getElementById('btn-goto-payment');
+  const subtitle = document.getElementById('payment-subtitle');
+  const paymentOptions = document.getElementById('payment-options-container');
+  if(banner) banner.style.display = 'none';
+  if(submitButton) submitButton.textContent = 'XÁC NHẬN ĐÚNG';
+  if(subtitle) subtitle.textContent = 'Chọn hình thức thanh toán cho đơn hàng';
+  if(paymentOptions) paymentOptions.style.display = 'block';
+  paymentMethod = null;
+  try { resetPaymentChoice(); } catch(e) {}
+  try { renderGroupBar(); renderMenu(); updateBottomCartBar(); } catch(e) {}
+  return true;
+}
 function processCustomerOrders(phoneNum) {
-  const active = ALL_ORDERS.find(o => o.customerPhone === phoneNum && o.status !== 'Hoàn thành' && o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy');
-  if(active) {
-    activeOrderId = active.id;
-    document.getElementById('floating-order-tag').style.display = 'flex';
-    document.getElementById('floating-status-text').textContent = active.status || 'Đang xử lý đơn...';
-    listenToChat(active.id);
-  } else {
-    activeOrderId = null;
-    document.getElementById('floating-order-tag').style.display = 'none';
-    document.getElementById('chat-window').style.display = 'none';
+  const orders = normalizeOrders(ALL_ORDERS);
+  if(isMergingOrder) {
+    const mergeTarget = orders.find(o => o.id === activeOrderId && o.customerPhone === phoneNum);
+    if(!mergeTarget || !isOrderOpen(mergeTarget) || isCanceledOrCancelPendingOrder(mergeTarget)) exitAddOnModeAfterOrderClosed();
   }
+  const active = orders.find(o => o.customerPhone === phoneNum && o.status !== 'Hoàn thành' && o.status !== 'Đã hủy' && o.status !== 'Yêu cầu hủy' && !isCanceledOrCancelPendingOrder(o));
+  if(active) { activeOrderId = active.id; activeOrderStatus = active.status || 'Đang xử lý đơn...'; }
+  else { activeOrderId = null; activeOrderStatus = ''; }
+  updateChatBubble();
 }
 
 function openProfileScreen() {
@@ -2037,44 +2156,50 @@ function setWinNotificationPreference(enabled) {
 function openHistoryScreen() { renderHistoryUI(); showScreen('step6-history'); }
 
 function renderHistoryUI() {
-  const myOrders = ALL_ORDERS.filter(o => o.customerPhone === customer.loginPhone);
-  const activeOrder = myOrders.find(o => o.status !== 'Hoàn thành' && o.status !== 'Đã hủy');
-  const pastOrders = myOrders.filter(o => o.status === 'Hoàn thành' || o.status === 'Đã hủy');
+  const liveOrders = normalizeOrders(ALL_ORDERS).filter(o => o.customerPhone === customer.loginPhone);
+  const byId = new Map();
+  normalizeOrders(customer.cancelledOrders).forEach(o => { if(o && o.id) byId.set(o.id, o); });
+  liveOrders.forEach(o => { if(o && o.id) byId.set(o.id, o); });
+  const myOrders = Array.from(byId.values());
+  const activeOrder = myOrders.find(o => o.status !== 'Hoàn thành' && !isCanceledOrCancelPendingOrder(o));
+  const pastOrders = myOrders.filter(o => o.status === 'Hoàn thành' || isCanceledOrCancelPendingOrder(o));
   const activeContainer = document.getElementById('hist-active-order');
   if(activeOrder) {
-    const itemsHtml = (activeOrder.items||[]).map(i => `<div class="history-item-line">• ${i.name} (${i.size}) x ${i.qty}</div><div class="history-item-sub">${i.toppings?'+ '+i.toppings.map(t=>t.name).join(', '):''}</div>`).join('');
-    const isRequestCancel = activeOrder.status === 'Yêu cầu hủy';
+    const activeItems = Array.isArray(activeOrder.items) ? activeOrder.items : Object.values(activeOrder.items || {});
+    const itemsHtml = activeItems.map(i => {
+      const toppings = Array.isArray(i.toppings) ? i.toppings : Object.values(i.toppings || {});
+      const toppingText = toppings.map(t => typeof t === 'string' ? t : (t && t.name) || '').filter(Boolean).join(', ');
+      return `<div class="history-item-line">• ${escapeHtml(String(i.name || 'Món'))} (${escapeHtml(String(i.size || ''))}) x ${Number(i.qty || 0)}</div>${toppingText ? `<div class="history-item-sub">+ ${escapeHtml(toppingText)}</div>` : ''}${i.note ? `<div class="history-item-sub">Ghi chú món: ${escapeHtml(String(i.note))}</div>` : ''}`;
+    }).join('');
     const hasVoucher = activeOrder.appliedVoucher && activeOrder.appliedVoucher !== 'none';
-    activeContainer.innerHTML = `
-      <div class="history-card ${hasVoucher ? 'voucher-glow' : ''}" style="border-color:${isRequestCancel ? 'var(--bad)' : (hasVoucher ? 'var(--purple)' : 'var(--accent)')};">
-        <div class="history-card-header"><span style="color:${isRequestCancel ? 'var(--bad)' : 'var(--accent)'};">Trạng thái: ${activeOrder.status||'Đang xử lý'}</span><span style="color:var(--good);">${fmt(activeOrder.totalPrice)}đ</span></div>
-        ${hasVoucher ? `<div style="font-size:12px; color:var(--purple); font-weight:800; margin-bottom:6px;">✨ Áp dụng Voucher: ${activeOrder.appliedVoucher}</div>` : ''}
-        <div style="margin-bottom:12px;">${itemsHtml}</div>
-        <div style="display:flex; gap:10px;">
-          ${isRequestCancel ? `<div style="text-align:center; width:100%; font-size:12px; color:var(--bad); font-weight:700;">Quán đang xác nhận hủy đơn của bạn...</div>` 
-            : `<button class="btn danger outline" style="flex:1;" onclick="requestCancelOrder('${activeOrder.id}')">❌ Hủy Đơn</button>
-               <button class="btn" style="flex:2;" onclick="startMergeOrder()">➕ Gọi Thêm</button>`}
-        </div>
-      </div>`;
-  } else { activeContainer.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--muted);">Không có đơn nào đang chờ xử lý.</p>'; }
+    activeContainer.innerHTML = `\n      <div class="history-card st-processing">\n        <div class="order-state-note doing">⏳ Quán đang làm đơn — chưa hoàn thành</div>\n        <div class="history-card-header"><span>Trạng thái: ${escapeHtml(String(activeOrder.status || 'Đang xử lý'))}</span><span style="color:var(--good);">${fmt(activeOrder.totalPrice)}đ</span></div>\n        <div style="font-size:11px;color:var(--muted);margin:4px 0 8px;">Mã đơn: ${escapeHtml(String(activeOrder.id || '—'))} · ${escapeHtml(String(activeOrder.time || ''))}</div>\n        ${hasVoucher ? `<div style="font-size:12px;color:var(--purple);font-weight:800;margin-bottom:6px;">✨ Voucher: ${escapeHtml(String(activeOrder.appliedVoucher))}</div>` : ''}\n        <div style="margin-bottom:12px;">${itemsHtml}</div>\n        <div style="display:flex;gap:10px;"><button class="btn danger outline" style="flex:1;" onclick="requestCancelOrder('${escapeHtml(String(activeOrder.id || ''))}')">❌ Hủy Đơn</button><button class="btn" style="flex:2;" onclick="startMergeOrder()">➕ Gọi Thêm</button></div>\n      </div>`;
+  } else {
+    const hasPendingCancellation = myOrders.some(o => isCanceledOrCancelPendingOrder(o) && o.status !== 'Đã hủy');
+    activeContainer.innerHTML = `<p style="text-align:center;font-size:13px;color:var(--muted);">${hasPendingCancellation ? 'Đơn đang chờ quán xác nhận hủy được hiển thị đầy đủ bên dưới.' : 'Không có đơn nào đang chờ xử lý.'}</p>`;
+  }
   const pastContainer = document.getElementById('hist-past-orders');
   if(pastOrders.length > 0) {
     pastContainer.innerHTML = pastOrders.map(o => {
-      const isCanceled = o.status === 'Đã hủy';
+      const isCanceled = isCanceledOrCancelPendingOrder(o);
+      const isPendingCancellation = isCanceled && o.status !== 'Đã hủy';
       const hasVoucher = o.appliedVoucher && o.appliedVoucher !== 'none';
-      const itemsHtml = (o.items||[]).map(i => `<div class="history-item-line">• ${i.name} (${i.size}) x ${i.qty}</div>`).join('');
-      return `
-        <div class="history-card ${hasVoucher ? 'voucher-glow' : ''}" style="opacity:0.9;">
-          <div class="history-card-header"><span>${o.time.split(' — ')[1]} ${isCanceled?'<b style="color:red">(Đã Hủy)</b>':''}</span><span style="color:var(--good);">${fmt(o.totalPrice)}đ</span></div>
-          ${hasVoucher ? `<div style="font-size:12px; color:var(--purple); font-weight:800; margin-bottom:6px;">✨ Áp dụng Voucher: ${o.appliedVoucher}</div>` : ''}
-          <div>${itemsHtml}</div>
-        </div>`;
+      const items = Array.isArray(o.items) ? o.items : Object.values(o.items || {});
+      const itemsHtml = items.map(i => {
+        const toppings = Array.isArray(i.toppings) ? i.toppings : Object.values(i.toppings || {});
+        const toppingText = toppings.map(t => typeof t === 'string' ? t : (t && t.name) || '').filter(Boolean).join(', ');
+        return `<div class="history-item-line">• ${escapeHtml(String(i.name || 'Món'))} (${escapeHtml(String(i.size || ''))}) x ${Number(i.qty || 0)}</div>${toppingText ? `<div class="history-item-sub">+ Topping: ${escapeHtml(toppingText)}</div>` : ''}${i.note ? `<div class="history-item-sub">Ghi chú món: ${escapeHtml(String(i.note))}</div>` : ''}`;
+      }).join('');
+      const qty = Number(o.totalQty || items.reduce((sum, item) => sum + Number(item.qty || 0), 0));
+      const statusText = isPendingCancellation ? '⏳ Đang chờ quán xác nhận hủy' : isCanceled ? `❌ Đã hủy · ${escapeHtml(getOrderCancellationSource(o))}` : `✅ Đã hoàn thành đơn${o.completedTime ? ' · ' + escapeHtml(String(o.completedTime)) : ''}`;
+      const cancellationReason = o.cancellationReason || o.cancelReason || o.cancelNote || '';
+      const generalNote = String(o.generalNote || '').replace(/\s*\|\s*\[KHÁCH YÊU CẦU HỦY ĐƠN\]/gi, '').trim();
+      return `\n        <div class="history-card ${isCanceled ? 'st-cancel' : 'st-done'}" style="${isCanceled ? 'opacity:0.92;' : ''}">\n          <div class="order-state-note ${isCanceled ? '' : 'done'}" style="${isCanceled ? 'color:var(--bad);' : ''}">${statusText}</div>\n          <div class="history-card-header"><span>${escapeHtml(String(o.time || ''))}</span><span style="color:var(--good);">${fmt(o.totalPrice)}đ</span></div>\n          <div style="font-size:11px;color:var(--muted);margin:4px 0 8px;">Mã đơn: ${escapeHtml(String(o.id || '—'))}${o.paymentMethod ? ' · Thanh toán: ' + escapeHtml(String(o.paymentMethod)) : ''}</div>\n          ${hasVoucher ? `<div style="font-size:12px;color:var(--purple);font-weight:800;margin-bottom:6px;">✨ Voucher áp dụng: ${escapeHtml(String(o.appliedVoucher))}</div>` : ''}\n          <div>${itemsHtml}</div>\n          <div style="font-size:12px;font-weight:800;margin-top:6px;">Tổng số món: ${qty}</div>\n          ${generalNote ? `<div class="history-item-sub" style="margin-top:4px;">Ghi chú đơn: ${escapeHtml(generalNote)}</div>` : ''}\n          ${cancellationReason ? `<div class="history-item-sub" style="margin-top:4px;color:var(--bad);">Lý do hủy: ${escapeHtml(String(cancellationReason))}</div>` : ''}\n        </div>`;
     }).join('');
-  } else { pastContainer.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--muted);">Chưa có lịch sử đơn hàng cũ.</p>'; }
+  } else { pastContainer.innerHTML = '<p style="text-align:center;font-size:13px;color:var(--muted);">Chưa có lịch sử đơn hàng cũ.</p>'; }
 }
-
 function startMergeOrder() {
   isMergingOrder = true;
+  try { updateVoucherDropdown(); } catch(e) {}
   document.getElementById('alert-merge-order').style.display = 'block';
   document.getElementById('btn-goto-payment').textContent = 'XÁC NHẬN GỌI THÊM';
   document.getElementById('payment-subtitle').textContent = 'Xác nhận gộp các món này vào đơn hiện tại.';
@@ -2086,15 +2211,22 @@ function startMergeOrder() {
 
 function requestCancelOrder(orderIdToCancel) {
   if(confirm("Bạn đang muốn hủy đơn, bạn có xác nhận điều này chứ :(")) {
-    db.ref('meoxam_data/orders').once('value').then(snap => {
-      let orders = snap.val() || [];
-      let idx = orders.findIndex(o => o.id === orderIdToCancel);
-      if(idx > -1) {
-        orders[idx].generalNote = (orders[idx].generalNote || '') + " | [KHÁCH YÊU CẦU HỦY ĐƠN]";
-        orders[idx].status = 'Yêu cầu hủy';
-        return db.ref('meoxam_data/orders').set(orders);
-      }
-    }).then(() => { alert("Yêu cầu hủy đơn đã được gửi!"); renderHistoryUI(); })
+    let cancelFail = false;
+    db.ref('meoxam_data/orders').transaction(cur => {
+      cancelFail = false;
+      const orders = normalizeOrders(cur);
+      const idx = orders.findIndex(o => o.id === orderIdToCancel);
+      if(idx < 0 || !isOrderOpen(orders[idx])){ cancelFail = true; return; } // đơn đã hoàn thành / không còn → không hủy
+      orders[idx].generalNote = (orders[idx].generalNote || '') + " | [KHÁCH YÊU CẦU HỦY ĐƠN]";
+      orders[idx].cancelRequestedBy = 'customer';
+      orders[idx].cancelRequestedAt = Date.now();
+      orders[idx].status = 'Yêu cầu hủy';
+      return orders;
+    }).then(res => {
+      if(res.committed && res.snapshot) { ALL_ORDERS = normalizeOrders(res.snapshot.val()); processCustomerOrders(customer.loginPhone); }
+      alert(res.committed ? "Yêu cầu hủy đơn đã được gửi!" : "Đơn này quán đã hoàn thành (hoặc không còn) nên không hủy được.");
+      renderHistoryUI();
+    })
     .catch(err => alert("Lỗi: " + err.message));
   }
 }
@@ -2185,6 +2317,7 @@ function closeModal() { document.getElementById('product-modal').style.display =
 
 // Thêm món mới
 function addToCart() {
+  if(blockIfOpenOrder()){ try { closeModal(); } catch(e) {} return; }
   if(groupCartLocked()) { alert('Bạn đã xác nhận món, không thể sửa giỏ nhóm nữa.'); return; }
   if(!modalItem) return;
   const basePrice = modalItem.sizes[modalSelectedSize].price || 0;
@@ -2258,6 +2391,8 @@ function updateVoucherDropdown() {
   if(!selectEl) return;
   const currentVal = selectEl.value;
   // KIỂM SOÁT VOUCHER CHUẨN XÁC: Loại bỏ voucher đã dùng VÀ voucher bị thu hồi
+  selectEl.disabled = false;
+  if(isMergingOrder) { selectEl.innerHTML = '<option value="none">-- Gọi thêm món không dùng voucher (1 đơn / 1 mã) --</option>'; selectEl.value = 'none'; selectEl.disabled = true; return; }
   const isGroupMember = groupId && !groupIsHost;
   if(isGroupMember) { selectEl.innerHTML = '<option value="none">-- Chỉ chủ nhóm được dùng voucher --</option>'; selectEl.value = 'none'; return; }
   const validVouchers = (customer.vouchers || []).filter(v => !v.used && !v.revoked);
@@ -2302,7 +2437,7 @@ function calculateFinalTotal(billArg) {
   let discount = 0;
   bill.forEach(i => { delete i.voucherFree; });
   const selectEl = document.getElementById('selected-voucher');
-  const voucherId = (groupId && !groupIsHost) ? 'none' : (selectEl ? selectEl.value : 'none');
+  const voucherId = (isMergingOrder || (groupId && !groupIsHost)) ? 'none' : (selectEl ? selectEl.value : 'none'); // gọi thêm món: không áp voucher (mỗi đơn chỉ 1 mã)
   let appliedVoucherName = 'none';
   if(voucherId !== 'none') {
     const vObj = (customer.vouchers || []).find(v => v.id === voucherId);
@@ -2453,20 +2588,62 @@ function goToPayment() {
   if(groupId && groupOrderSubmitted) { alert('Đơn nhóm đã gửi quán. Vui lòng chờ chủ quán hoàn thành.'); return; }
   const pending = groupPendingMembers();
   if(pending.length) { alert('Chưa thể gửi đơn. Thành viên chưa chốt món: ' + pending.map(m => m.name || 'Khách').join(', ')); return; }
-  if(getBillItems().length === 0) return; selectPayment('Tiền mặt'); showScreen('step4-payment'); }
-function selectPayment(method) {
-  paymentMethod = method;
-  document.getElementById('pay-cash').classList.remove('active'); document.getElementById('pay-bank').classList.remove('active');
-  if(method === 'Tiền mặt') { document.getElementById('pay-cash').classList.add('active'); document.getElementById('qr-section').style.display = 'none'; }
-  else { document.getElementById('pay-bank').classList.add('active'); document.getElementById('qr-section').style.display = 'block'; }
+  if(getBillItems().length === 0) return;
+  if(blockIfOpenOrder()) return;
+  resetPaymentChoice(); showScreen('step4-payment'); }
+const QR_BANK_NAMES = {VCB:'Vietcombank',MB:'MB Bank',TCB:'Techcombank',ACB:'ACB',BIDV:'BIDV',ICB:'VietinBank',VPB:'VPBank',TPB:'TPBank',STB:'Sacombank',VIB:'VIB',HDB:'HDBank',SHB:'SHB',OCB:'OCB',MSB:'MSB',SEAB:'SeABank',EIB:'Eximbank',LPB:'LPBank',VBA:'Agribank',NAB:'Nam A Bank',CAKE:'Cake by VPBank',TIMO:'Timo',MOMO:'Ví MoMo'};
+function stripVN(t){ return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 25); }
+function refreshPayUI() {
+  const cash = document.getElementById('pay-cash'), bank = document.getElementById('pay-bank');
+  cash.classList.toggle('active', paymentMethod === 'Tiền mặt');
+  bank.classList.toggle('active', paymentMethod === 'Chuyển khoản');
+  const qr = document.getElementById('qr-section');
+  qr.style.display = paymentMethod === 'Chuyển khoản' ? 'block' : 'none';
+  const hint = document.getElementById('pay-choose-hint'); if(hint) hint.style.display = (paymentMethod || isMergingOrder) ? 'none' : 'block';
+  const btn = document.getElementById('btn-submit-order'); if(btn) btn.classList.toggle('need-pay', !paymentMethod && !isMergingOrder);
+  if(paymentMethod === 'Chuyển khoản') renderPayQr();
+}
+function resetPaymentChoice() { paymentMethod = null; const c = document.getElementById('payment-options-container'); if(c) c.classList.remove('need-choose'); refreshPayUI(); }
+function selectPayment(method) { paymentMethod = method; const c = document.getElementById('payment-options-container'); if(c) c.classList.remove('need-choose'); refreshPayUI(); }
+/* Mã QR lấy từ cài đặt của quán (VietQR có sẵn số tiền) — chủ quán cài ở tab Cài Đặt → Mã QR chuyển khoản */
+function renderPayQr() {
+  const box = document.getElementById('qr-section'); if(!box) return;
+  const amt = Math.round(calculateFinalTotal().finalTotal || 0);
+  const c = SHOP_BANK_QR || {};
+  const head = `<div style="font-weight:800; font-size:15px; color:#2f5fa6; margin-bottom:8px;">📱 Số tiền cần chuyển: ${fmt(amt)}đ</div>`;
+  const nm = isGuest ? ((document.getElementById('guest-name') || {}).value || '') : (customer.name || '');
+  const info = stripVN(nm) || 'Order';
+  const imgStyle = 'width:260px; max-width:100%; border-radius:14px; background:#fff; border:2px solid var(--line);';
+  if(c.bank && c.acc) {
+    const url = 'https://img.vietqr.io/image/' + encodeURIComponent(c.bank) + '-' + encodeURIComponent(c.acc) + '-compact2.png?amount=' + amt + '&addInfo=' + encodeURIComponent(info) + (c.name ? '&accountName=' + encodeURIComponent(c.name) : '');
+    box.innerHTML = head + `<img src="${url}" alt="QR thanh toán" style="${imgStyle}" onerror="payQrFallback(this)">` +
+      `<div class="pay-qr-info">${escapeHtml(QR_BANK_NAMES[c.bank] || c.bank)} · STK <b>${escapeHtml(c.acc)}</b>${c.name ? '<br>' + escapeHtml(c.name) : ''}</div>`;
+  } else if(c.img) {
+    box.innerHTML = head + `<img src="${c.img}" alt="QR thanh toán" style="${imgStyle}"><div class="pay-qr-info" style="color:var(--muted);">Nhập số tiền ${fmt(amt)}đ khi chuyển.</div>`;
+  } else {
+    box.innerHTML = head + '<div style="padding:10px; border-radius:10px; background:#fff4e5; color:#b45309; font-size:13px; font-weight:700;">⚠️ Quán chưa cài mã QR. Bạn vui lòng chọn Tiền mặt hoặc nhắn quán qua 💬 chat để lấy số tài khoản nhé.</div>';
+  }
+}
+function payQrFallback(img) {
+  const c = SHOP_BANK_QR || {}; img.onerror = null;
+  if(c.img) { img.src = c.img; return; }
+  const d = document.createElement('div'); d.style.cssText = 'padding:10px; font-size:12.5px; color:#b3261e; font-weight:700;';
+  d.textContent = 'Không tải được mã QR (kiểm tra mạng). Bạn chuyển khoản theo số tài khoản bên dưới nhé.'; img.replaceWith(d);
+}
+function openChatForProof() {
+  updateChatBubble();
+  if(!isChatOpen) toggleChatWindow();
 }
 
 function submitOrder() {
+  if(_submitBusy) return; // chống bấm đúp
   if(groupId && !groupIsHost) return;
   if(groupId && groupOrderSubmitted) { alert('Đơn nhóm đã gửi quán. Vui lòng chờ chủ quán hoàn thành.'); return; }
   const pendingGroupMembers = groupPendingMembers();
   if(pendingGroupMembers.length) { alert('Chưa thể gửi đơn. Thành viên chưa chốt món: ' + pendingGroupMembers.map(m => m.name || 'Khách').join(', ')); return; }
   if(getBillItems().length === 0) return;
+  const submittingAsMerge = isMergingOrder && !!activeOrderId && !isGuest;
+  const mergeTargetOrderId = submittingAsMerge ? activeOrderId : null;
   let guestInfo = null;
   if(isGuest) {
     const gName = document.getElementById('guest-name').value.trim();
@@ -2478,30 +2655,47 @@ function submitOrder() {
     guestInfo = { name: gName, phone: gPhone, address: gAddr };
     try { localStorage.setItem('mx_guest_info', JSON.stringify(guestInfo)); } catch(e) {}
   }
+  if(blockIfOpenOrder(guestInfo ? guestInfo.phone : null)) return;
+  if(!isMergingOrder && !paymentMethod) {
+    const c = document.getElementById('payment-options-container'); if(c) { c.classList.remove('need-choose'); void c.offsetWidth; c.classList.add('need-choose'); }
+    alert('Vui lòng chọn hình thức thanh toán (Tiền mặt hoặc Chuyển khoản) trước khi gửi yêu cầu cho quán nhé!');
+    return;
+  }
+  _submitBusy = true;
   const orderItems = buildOrderItems();
   const addQty = orderItems.reduce((s, i) => s + i.qty, 0);
   const calc = calculateFinalTotal(orderItems);
   const groupMemberCount = (groupId && groupData && groupData.members) ? Object.keys(groupData.members).length : 0;
   const now = new Date(getVNDate());
   const newId = `order_web_${uid()}`;
-  const effectiveOrderId = (isMergingOrder && activeOrderId) ? activeOrderId : newId;
+  const effectiveOrderId = submittingAsMerge ? mergeTargetOrderId : newId;
   window._lastOrderId = effectiveOrderId;
   const earnedTicket = (addQty >= 3 && !isGuest);
   const needTx = !isGuest && (earnedTicket || calc.voucherId !== 'none');
   const doSend = () => {
-  if(isMergingOrder && activeOrderId && !isGuest) {
-    db.ref('meoxam_data/orders').once('value').then(snap => {
-      let orders = snap.val() || [];
-      let idx = orders.findIndex(o => o.id === activeOrderId);
-      if(idx > -1) {
-        orders[idx].items = (orders[idx].items || []).concat(orderItems);
-        orders[idx].totalQty += addQty;
-        orders[idx].totalPrice += calc.finalTotal;
-        orders[idx].generalNote = (orders[idx].generalNote || '') + " | (Vừa gọi thêm món)";
-        return db.ref('meoxam_data/orders').set(orders);
+  if(submittingAsMerge) {
+    let mergeFail = null;
+    db.ref('meoxam_data/orders').transaction(cur => {
+      mergeFail = null;
+      const orders = normalizeOrders(cur);
+      const idx = orders.findIndex(o => o.id === mergeTargetOrderId);
+      if(idx < 0){ mergeFail = 'missing'; return; }
+      if(!isOrderOpen(orders[idx]) || isCanceledOrCancelPendingOrder(orders[idx])){ mergeFail = 'closed'; return; }
+      orders[idx].items = (orders[idx].items || []).concat(orderItems);
+      orders[idx].totalQty = (orders[idx].totalQty || 0) + addQty;
+      orders[idx].totalPrice = (orders[idx].totalPrice || 0) + calc.finalTotal;
+      orders[idx].generalNote = (orders[idx].generalNote || '') + " | (Vừa gọi thêm món)";
+      return orders;
+    }).then(res => {
+      if(!res.committed){
+        rollbackSubmitRewards();
+        _submitBusy = false;
+        exitAddOnModeAfterOrderClosed();
+        alert(mergeFail === 'closed' ? 'Đơn trước đã được quán hoàn thành / đang hủy nên không gọi thêm được. Bạn hãy đặt một đơn mới nhé!' : 'Không tìm thấy đơn hiện tại để gọi thêm (có thể quán đã xử lý xong). Vui lòng kiểm tra lại Lịch Sử Đơn.');
+        return;
       }
-    }).then(() => { applyAutomaticVIPTheme(); finalizeSubmit("ĐÃ GỘP MÓN THÀNH CÔNG!", earnedTicket); })
-    .catch(err => alert("Lỗi gộp đơn: " + err.message));
+      applyAutomaticVIPTheme(); finalizeSubmit("ĐÃ GỘP MÓN THÀNH CÔNG!", earnedTicket);
+    }).catch(err => { rollbackSubmitRewards(); _submitBusy = false; alert("Lỗi gộp đơn: " + err.message); });
   } else {
     const tableInfo = isGuest
       ? `Khách lẻ: ${guestInfo.name} - ${guestInfo.phone} - ${guestInfo.address}`
@@ -2516,17 +2710,29 @@ function submitOrder() {
     };
     if(groupId && groupIsHost) { orderData.isGroup = true; orderData.groupId = groupId; orderData.generalNote += ` | Đơn nhóm (${groupMemberCount} người)`; }
     if(isGuest) { orderData.isGuest = true; orderData.guestName = guestInfo.name; orderData.guestPhone = guestInfo.phone; orderData.guestAddress = guestInfo.address; }
-    db.ref('meoxam_data/orders').once('value').then(snap => {
-      let orders = snap.val() || []; orders.unshift(orderData);
-      return db.ref('meoxam_data/orders').set(orders);
-    }).then(() => {
+    let blocked = false;
+    db.ref('meoxam_data/orders').transaction(cur => {
+      blocked = false;
+      const orders = normalizeOrders(cur);
+      if(orders.some(o => o.id === newId)) return orders; // đã có (bấm đúp) → không thêm lần 2
+      const dup = orders.find(o => isOrderOpen(o) && (isGuest ? (o.isGuest && o.guestPhone === guestInfo.phone) : o.customerPhone === customer.loginPhone));
+      if(dup && !(groupId && !groupIsHost)){ blocked = true; return; } // kiểm tra lại trên dữ liệu thật của server
+      orders.unshift(orderData);
+      return orders;
+    }).then(res => {
+      if(!res.committed){
+        rollbackSubmitRewards();
+        _submitBusy = false;
+        alert(blocked ? 'Bạn đang có 1 đơn chưa được quán hoàn thành nên chưa đặt đơn mới được. Vui lòng chờ quán hoàn thành đơn trước nhé!' : 'Không gửi được đơn, vui lòng thử lại.');
+        return;
+      }
       if(!isGuest) {
         activeOrderId = newId;
         listenToChat(newId);
         applyAutomaticVIPTheme();
       }
       finalizeSubmit("ĐẶT HÀNG THÀNH CÔNG!", earnedTicket);
-    }).catch(err => alert("Lỗi gửi đơn: " + err.message));
+    }).catch(err => { rollbackSubmitRewards(); _submitBusy = false; alert("Lỗi gửi đơn: " + err.message); });
   }
   };
   if(needTx) {
@@ -2540,17 +2746,28 @@ function submitOrder() {
       }
       if(earnedTicket) d.ticketLedger.push({ id: uid(), source: 'order', sourceOrderId: effectiveOrderId, status: 'unused', voucherId: null });
     }).then(res => {
-      if(!res.committed) { alert("Voucher này không còn hiệu lực (đã dùng hoặc bị quán thu hồi). Vui lòng chọn lại voucher khác!"); renderCartUI(); updateBottomCartBar(); showScreen('step3-cart'); return; }
+      if(!res.committed) { _submitBusy = false; alert("Voucher này không còn hiệu lực (đã dùng hoặc bị quán thu hồi). Vui lòng chọn lại voucher khác!"); renderCartUI(); updateBottomCartBar(); showScreen('step3-cart'); return; }
       doSend();
-    }).catch(err => alert("Lỗi kết nối: " + err.message));
+    }).catch(err => { _submitBusy = false; alert("Lỗi kết nối: " + err.message); });
   } else { doSend(); }
+  /* Gửi đơn thất bại / bị chặn sau khi đã trừ voucher + cộng vé → hoàn lại để khách không bị mất quyền lợi */
+  function rollbackSubmitRewards(){
+    if(!needTx) return;
+    txCustomer(d => {
+      const v = d.vouchers.find(x => x.id === calc.voucherId);
+      if(v && d.usedVoucherLog && d.usedVoucherLog[effectiveOrderId] === v.id){ v.used = false; delete d.usedVoucherLog[effectiveOrderId]; }
+      d.ticketLedger = d.ticketLedger.filter(t => !(t.sourceOrderId === effectiveOrderId && t.status === 'unused'));
+    }).catch(e => console.error('Lỗi hoàn lại voucher/vé:', e));
+  }
 }
 
 function finalizeSubmit(title, earnedTicket) {
+  _submitBusy = false;
   finishGroupAfterOrder();
   let extraMsg = earnedTicket ? "\n🎁 Chúc mừng bạn nhận thêm 1 Ticket vì đơn hàng có từ 3 món nước trở lên!" : "";
   document.getElementById('success-title').textContent = title;
   document.getElementById('success-name').textContent = (isGuest ? (document.getElementById('guest-name').value.trim()) : customer.name) + extraMsg;
+  { const bn = document.getElementById('success-bank-note'); if(bn) bn.style.display = (!isMergingOrder && paymentMethod === 'Chuyển khoản') ? 'block' : 'none'; }
   document.getElementById('btn-success-history').style.display = isGuest ? 'none' : '';
   document.getElementById('btn-success-more').style.display = isGuest ? '' : 'none';
   isMergingOrder = false;
@@ -2560,24 +2777,63 @@ function finalizeSubmit(title, earnedTicket) {
   document.getElementById('payment-options-container').style.display = 'block';
   showScreen('step5-success');
   cart = []; updateBottomCartBar();
+  paymentMethod = null; try { updateVoucherDropdown(); } catch(e) {}
+  try { updateChatBubble(); } catch(e) {}
 }
 
 let chatUnreadCount = 0, isChatOpen = false;
-let chatListenerRef = null;
+let chatListenerRef = null, currentChatId = null;
+const CHAT_IMG_CACHE = {};
+function getGuestChatKey() {
+  let k = null;
+  try { k = localStorage.getItem('mx_guest_chat_key'); } catch(e) {}
+  if(!k) { k = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); try { localStorage.setItem('mx_guest_chat_key', k); } catch(e) {} }
+  return k;
+}
+/* Mã cuộc chat: đang có đơn → chat theo đơn (quán thấy ngay ngữ cảnh); chưa có đơn → chat theo khách (hiện sẵn bong bóng, không cần đặt đơn mới nhắn được) */
+function getChatId() {
+  if(activeOrderId) return activeOrderId;
+  if(!isGuest && customer.loginPhone) return 'cust_' + customer.loginPhone;
+  return 'guest_' + getGuestChatKey();
+}
+function updateChatBubble() {
+  const tag = document.getElementById('floating-order-tag'), win = document.getElementById('chat-window');
+  if(!tag || !win) return;
+  const inApp = !!(customer.loginPhone || isGuest);
+  if(!inApp) {
+    tag.style.display = 'none'; win.style.display = 'none'; isChatOpen = false;
+    if(chatListenerRef) { chatListenerRef.off(); chatListenerRef = null; } currentChatId = null;
+    return;
+  }
+  tag.style.display = 'flex'; tag.classList.toggle('compact', !activeOrderId);
+  const st = document.getElementById('floating-status-text');
+  if(st) st.textContent = activeOrderId ? (activeOrderStatus || 'Đang xử lý đơn...') : 'Chat với quán';
+  const id = getChatId();
+  if(id !== currentChatId) {
+    currentChatId = id; chatUnreadCount = 0;
+    const badge = document.getElementById('chat-unread-badge'); if(badge) badge.style.display = 'none';
+    listenToChat(id);
+  }
+}
+const CHAT_EMPTY_HTML = `<div style="text-align:center; font-size:12px; color:var(--muted); margin:10px 0;">Nhắn tin cho quán nếu cần hỗ trợ thêm nhé! (bấm 📷 để gửi ảnh, ví dụ ảnh đã chuyển khoản)</div>`;
 function listenToChat(orderId) {
   if(chatListenerRef) chatListenerRef.off();
+  const body0 = document.getElementById('chat-messages'); if(body0) body0.innerHTML = CHAT_EMPTY_HTML;
   chatListenerRef = db.ref(`meoxam_data/chats/${orderId}`);
   chatListenerRef.on('value', snap => {
-    const msgs = snap.val(); if(!msgs) return;
+    const body = document.getElementById('chat-messages');
+    const msgs = snap.val();
+    if(!msgs) { body.innerHTML = CHAT_EMPTY_HTML; return; }
     let html = '', hasNew = false;
     const keys = Object.keys(msgs);
     keys.forEach((key, index) => {
       const m = msgs[key]; const isMe = m.sender === 'customer';
       if(!isMe && !isChatOpen && index === keys.length - 1) hasNew = true;
-      html += `<div class="msg-bubble ${isMe ? 'msg-customer' : 'msg-staff'}">${!isMe ? '<b>Quán:</b> ' : ''}${escapeHtml(m.text)}<div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:${isMe?'right':'left'};">${m.time}</div></div>`;
+      const content = (m.imgId ? `<img class="chat-img" data-chat="${escapeHtml(orderId)}" data-imgid="${escapeHtml(m.imgId)}" alt="Ảnh" onclick="openChatImage(this)">` : '') + (m.text ? escapeHtml(m.text) : '');
+      html += `<div class="msg-bubble ${isMe ? 'msg-customer' : 'msg-staff'}">${!isMe ? '<b>Quán:</b> ' : ''}${content}<div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:${isMe?'right':'left'};">${m.time || ''}</div></div>`;
     });
-    const body = document.getElementById('chat-messages');
-    body.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--muted); margin:10px 0;">Nhắn tin cho quán nếu cần hỗ trợ thêm nhé!</div>` + html;
+    body.innerHTML = CHAT_EMPTY_HTML + html;
+    hydrateChatImages(body);
     body.scrollTop = body.scrollHeight;
     if(hasNew && !isChatOpen) {
       chatUnreadCount++;
@@ -2586,18 +2842,79 @@ function listenToChat(orderId) {
     }
   });
 }
+/* Ảnh chat lưu ở node riêng meoxam_chat_img (không nằm trong meoxam_data để app không nặng); tải khi cần */
+function hydrateChatImages(root) {
+  root.querySelectorAll('img[data-imgid]').forEach(img => {
+    if(img.getAttribute('src')) return;
+    const key = img.dataset.chat + '/' + img.dataset.imgid;
+    if(CHAT_IMG_CACHE[key]) { img.src = CHAT_IMG_CACHE[key]; return; }
+    db.ref('meoxam_chat_img/' + key).once('value').then(sn => {
+      const v = sn.val(); if(!v) return;
+      CHAT_IMG_CACHE[key] = v; img.src = v;
+      const b = document.getElementById('chat-messages'); if(b && root === b) b.scrollTop = b.scrollHeight;
+    }).catch(() => {});
+  });
+}
+function openChatImage(el) {
+  const src = el && el.getAttribute('src'); if(!src) return;
+  const v = document.createElement('div');
+  v.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:99999; display:flex; align-items:center; justify-content:center; padding:12px;';
+  v.onclick = () => v.remove();
+  v.innerHTML = `<img src="${src}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:10px;"><div style="position:absolute; top:14px; right:18px; color:#fff; font-size:28px; font-weight:900;">✕</div>`;
+  document.body.appendChild(v);
+}
 function toggleChatWindow() {
   isChatOpen = !isChatOpen;
   document.getElementById('chat-window').style.display = isChatOpen ? 'flex' : 'none';
   if(isChatOpen) { chatUnreadCount = 0; document.getElementById('chat-unread-badge').style.display = 'none'; const cb = document.getElementById('chat-messages'); cb.scrollTop = cb.scrollHeight; }
 }
+function chatMsgMeta() {
+  const now = new Date(getVNDate());
+  const nm = isGuest ? ((document.getElementById('guest-name') || {}).value || '') : (customer.name || '');
+  const ph = isGuest ? ((document.getElementById('guest-phone') || {}).value || '') : (customer.loginPhone || '');
+  return { time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`, timestamp: now.getTime(), customerName: nm || 'Khách', customerPhone: ph };
+}
 function sendChatMessage() {
   const inp = document.getElementById('chat-input-msg'); const text = inp.value.trim();
-  if(!text || !activeOrderId) return;
-  const now = new Date(getVNDate());
-  db.ref(`meoxam_data/chats/${activeOrderId}`).push({ sender: 'customer', text: text, time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`, timestamp: now.getTime() })
+  if(!text) return;
+  const chatId = getChatId();
+  db.ref(`meoxam_data/chats/${chatId}`).push(Object.assign({ sender: 'customer', text: text }, chatMsgMeta()))
   .catch(err => console.error("Lỗi gửi tin nhắn:", err));
   inp.value = '';
+}
+function pickChatImage() { const i = document.getElementById('chat-img-input'); if(i) i.click(); }
+function compressChatImage(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onerror = reject;
+    r.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const maxSide = 1000, sc = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * sc)), h = Math.max(1, Math.round(img.height * sc));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+        let q = 0.72, out = c.toDataURL('image/jpeg', q);
+        while(out.length > 450000 && q > 0.35) { q -= 0.1; out = c.toDataURL('image/jpeg', q); }
+        resolve(out);
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+function onChatImagePicked(inp) {
+  const f = inp.files && inp.files[0]; inp.value = '';
+  if(!f) return;
+  if(!/^image\//.test(f.type)) { alert('Chỉ gửi được hình ảnh nhé.'); return; }
+  compressChatImage(f).then(dataUrl => {
+    const chatId = getChatId();
+    const imgId = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    CHAT_IMG_CACHE[chatId + '/' + imgId] = dataUrl;
+    return db.ref('meoxam_chat_img/' + chatId + '/' + imgId).set(dataUrl)   // ghi ảnh trước, rồi mới ghi tin nhắn trỏ tới ảnh
+      .then(() => db.ref(`meoxam_data/chats/${chatId}`).push(Object.assign({ sender: 'customer', text: '', imgId: imgId }, chatMsgMeta())));
+  }).catch(err => alert('Không gửi được ảnh: ' + (err && err.message ? err.message : 'thử ảnh khác nhé')));
 }
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
