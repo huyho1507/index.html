@@ -631,7 +631,7 @@ body.vip-mode .wf-prize{ background:#d4b483; color:#1a1408; }
       </div>
     </div>
     <div class="lucky-mini lucky-guest" id="lucky-guest" style="display:none;" onclick="goRegisterFromGuest()">
-      <span>🎁 Đăng ký để nhận Voucher quay giảm giá</span><span class="lm-arrow">›</span>
+      <span>🎁 Đăng ký / Đăng nhập để nhận Voucher quay giảm giá</span><span class="lm-arrow">›</span>
     </div>
     <div id="vip-status-banner" class="priority-banner"><div class="pb-1">✦ KHÁCH HÀNG PRIORITY ✦</div><div class="pb-2">Cảm ơn bạn đã đồng hành cùng Tiệm Trà Mèo Xám (tổng chi tiêu trên 3 triệu)</div></div>
     <div id="alert-merge-order" style="display:none; background:#eaf4ed; border:2px dashed var(--good); border-radius:14px; padding:10px; margin-bottom:14px; text-align:center; font-size:13px; font-weight:800; color:var(--good);">Đang trong chế độ: GỌI THÊM MÓN VÀO ĐƠN HIỆN TẠI ➕</div>
@@ -1517,6 +1517,7 @@ function fetchCustomerData(phone, callback, preferredSessionId) {
       applyAutomaticVIPTheme();
       renderCategories();
       renderMenu();
+      try { applyGuestCarry(); } catch(e) { console.error('applyGuestCarry:', e); }
       if(callback) callback();
     });
   }).catch(err => { alert("Lỗi kết nối: " + err.message); });
@@ -1803,9 +1804,101 @@ function trackMenuView() {
   } catch(e) {}
 }
 
+/* ===== Khách lẻ → tài khoản =====
+   Khi khách đang ở chế độ "Đặt ngay" (không đăng nhập) mà bấm Đăng ký / Đăng nhập:
+   - Giỏ hàng đang chọn dở được giữ lại và hiện trong tài khoản.
+   - Đơn đã đặt cho quán nhưng quán chưa hoàn thành được chuyển sang tài khoản cá nhân,
+     từ đó chạy như đơn đặt bằng tài khoản (lịch sử, chat theo đơn, gọi thêm, hủy, vé thưởng...). */
+const GUEST_CARRY_KEY = 'mx_guest_carry';
+const GUEST_ORDER_IDS_KEY = 'mx_guest_order_ids';
+const GUEST_CARRY_TTL = 12 * 60 * 60 * 1000;
+function readGuestOrderIds() {
+  try { const a = JSON.parse(localStorage.getItem(GUEST_ORDER_IDS_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch(e) { return []; }
+}
+function trackGuestOrderId(id) {
+  if(!id) return;
+  try {
+    const a = readGuestOrderIds().filter(x => x !== id);
+    a.unshift(id);
+    localStorage.setItem(GUEST_ORDER_IDS_KEY, JSON.stringify(a.slice(0, 20)));
+  } catch(e) {}
+}
+function untrackGuestOrderId(id) {
+  try { localStorage.setItem(GUEST_ORDER_IDS_KEY, JSON.stringify(readGuestOrderIds().filter(x => x !== id))); } catch(e) {}
+}
+function readGuestInfo() {
+  try { return JSON.parse(localStorage.getItem('mx_guest_info') || 'null'); } catch(e) { return null; }
+}
+/* Gọi lúc khách lẻ bấm Đăng ký / Đăng nhập: chụp lại giỏ hàng (phòng khi tải lại trang giữa chừng) */
+function saveGuestCarry() {
+  try { localStorage.setItem(GUEST_CARRY_KEY, JSON.stringify({ t: Date.now(), cart: JSON.parse(JSON.stringify(cart || [])) })); } catch(e) {}
+}
+/* Gọi ngay sau khi đăng nhập / đăng ký thành công (trong fetchCustomerData) */
+function applyGuestCarry() {
+  let snap = null;
+  try { snap = JSON.parse(localStorage.getItem(GUEST_CARRY_KEY) || 'null'); } catch(e) {}
+  if(!snap) return;
+  try { localStorage.removeItem(GUEST_CARRY_KEY); } catch(e) {}
+  if(!customer.loginPhone || !snap.t || Date.now() - snap.t > GUEST_CARRY_TTL) return;
+  if(!cart.length && Array.isArray(snap.cart) && snap.cart.length) {
+    cart = snap.cart.filter(i => i && i.prodId && Number(i.qty) > 0);
+  }
+  const cartQty = cart.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+  try { renderCartUI(); updateBottomCartBar(); } catch(e) {}
+  transferGuestOrderToAccount(cartQty);
+}
+function transferGuestOrderToAccount(cartQty) {
+  const phone = customer.loginPhone;
+  if(!phone) return;
+  const ids = readGuestOrderIds();
+  const gi = readGuestInfo();
+  const gp = gi && gi.phone ? String(gi.phone) : '';
+  if(!ids.length && !gp) return;
+  let moved = null, blocked = false;
+  db.ref('meoxam_data/orders').transaction(cur => {
+    moved = null; blocked = false;
+    const orders = normalizeOrders(cur);
+    const idx = orders.findIndex(o => o.isGuest && isOrderOpen(o) && !isCanceledOrCancelPendingOrder(o) && (ids.indexOf(o.id) >= 0 || (gp && o.guestPhone === gp)));
+    if(idx < 0) return;
+    // Quy tắc của app: mỗi tài khoản chỉ có 1 đơn chưa hoàn thành
+    if(orders.some(o => o.customerPhone === phone && isOrderOpen(o))) { blocked = true; return; }
+    const o = Object.assign({}, orders[idx]);
+    // Giữ nguyên SĐT + địa chỉ giao mà khách đã nhập lúc đặt để không giao nhầm chỗ
+    o.table = `App: ${customer.name} - ${o.guestPhone || customer.deliveryPhone} - ${o.guestAddress || customer.address}`;
+    o.customerPhone = phone;
+    delete o.isGuest; delete o.guestName; delete o.guestPhone; delete o.guestAddress;
+    o.generalNote = String(o.generalNote || '').replace('Khách đặt từ Web (không đăng nhập)', 'Khách đặt từ Web') + ' | (Khách lẻ vừa đăng ký/đăng nhập, đơn đã chuyển vào tài khoản)';
+    orders[idx] = o;
+    moved = o;
+    return orders;
+  }).then(res => {
+    if(!res.committed || !moved) {
+      if(blocked) setTimeout(() => alert('Tài khoản của bạn đang có 1 đơn chờ quán hoàn thành nên đơn đã đặt ở chế độ khách chưa thể gộp vào tài khoản. Quán vẫn xử lý đơn đó bình thường nhé!'), 400);
+      return;
+    }
+    const m = moved;
+    untrackGuestOrderId(m.id);
+    try { ALL_ORDERS = normalizeOrders(res.snapshot.val()); } catch(e) {}
+    try { processCustomerOrders(phone); } catch(e) {}
+    const finish = (ticketMsg) => {
+      let msg = '✅ Đơn bạn vừa đặt cho quán đã được chuyển vào tài khoản của bạn!\nBạn theo dõi trạng thái trong "Lịch Sử Đơn" và chat với quán như bình thường.' + ticketMsg;
+      if(cartQty > 0) msg += '\n\n🛒 Giỏ hàng vẫn còn ' + cartQty + ' món. Muốn thêm vào đơn này, bấm ➕ Gọi Thêm trong "Lịch Sử Đơn".';
+      try { openHistoryScreen(); } catch(e) {}
+      setTimeout(() => alert(msg), 300);
+    };
+    if(Number(m.totalQty) >= 3) {
+      txCustomer(d => {
+        if(d.ticketLedger.some(t => t.sourceOrderId === m.id)) return false;
+        d.ticketLedger.push({ id: uid(), source: 'order', sourceOrderId: m.id, status: 'unused', voucherId: null });
+      }).then(r => finish(r && r.committed ? '\n🎁 Đơn có từ 3 món nước trở lên nên bạn nhận thêm 1 Ticket!' : '')).catch(() => finish(''));
+    } else { finish(''); }
+  }).catch(err => console.error('Lỗi chuyển đơn khách lẻ sang tài khoản:', err));
+}
+
 function enterGuestMode(skipTrack) {
   if(skipTrack !== true) trackMenuView();
   isGuest = true;
+  try { localStorage.removeItem(GUEST_CARRY_KEY); } catch(e) {}
   if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   customer = { loginPhone: '', deliveryPhone: '', name: '', address: '', pin: '', tickets: 0, ticketLedger: [], vouchers: [], lastLoginTime: 0, nextFreeTicketTime: 0, usedVoucherLog: {}, spinHistory: [] };
   try {
@@ -1830,6 +1923,12 @@ function goRegisterFromGuest() {
     return;
   }
   if(groupId && groupData && groupData.status === 'completed') leaveGroupLocal(true, true);
+  if(isGuest) {
+    saveGuestCarry();
+    // Điền sẵn thông tin khách đã nhập để đăng ký cho nhanh
+    const fill = (src, dst) => { const a = document.getElementById(src), b = document.getElementById(dst); if(a && b && !b.value && a.value) b.value = a.value.trim(); };
+    fill('guest-name', 'reg-name'); fill('guest-phone', 'reg-phone'); fill('guest-address', 'reg-address');
+  }
   isGuest = false;
   document.getElementById('wheel-modal').style.display = 'none';
   switchAuthTab('register');
@@ -2730,7 +2829,7 @@ function submitOrder() {
         activeOrderId = newId;
         listenToChat(newId);
         applyAutomaticVIPTheme();
-      }
+      } else { trackGuestOrderId(newId); }
       finalizeSubmit("ĐẶT HÀNG THÀNH CÔNG!", earnedTicket);
     }).catch(err => { rollbackSubmitRewards(); _submitBusy = false; alert("Lỗi gửi đơn: " + err.message); });
   }
